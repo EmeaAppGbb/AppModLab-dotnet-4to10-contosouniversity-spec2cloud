@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using ContosoUniversity.Data;
 using ContosoUniversity.Models;
+using ContosoUniversity.Models.ViewModels;
 using ContosoUniversity.Services;
 
 namespace ContosoUniversity.Controllers
@@ -22,10 +23,6 @@ namespace ContosoUniversity.Controllers
 
         public async Task<IActionResult> Index(string sortOrder, string currentFilter, string searchString, int? page)
         {
-            ViewBag.CurrentSort = sortOrder;
-            ViewBag.NameSortParm = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
-            ViewBag.DateSortParm = sortOrder == "Date" ? "date_desc" : "Date";
-
             if (searchString != null)
             {
                 page = 1;
@@ -34,8 +31,6 @@ namespace ContosoUniversity.Controllers
             {
                 searchString = currentFilter;
             }
-
-            ViewBag.CurrentFilter = searchString;
 
             var students = from s in db.Students select s;
 
@@ -63,7 +58,15 @@ namespace ContosoUniversity.Controllers
 
             int pageSize = 10;
             int pageNumber = (page ?? 1);
-            return View(await PaginatedList<Student>.CreateAsync(students, pageNumber, pageSize));
+            var viewModel = new StudentListViewModel
+            {
+                Students = await PaginatedList<Student>.CreateAsync(students, pageNumber, pageSize),
+                CurrentSort = sortOrder,
+                CurrentFilter = searchString,
+                NameSortParm = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "",
+                DateSortParm = sortOrder == "Date" ? "date_desc" : "Date"
+            };
+            return View(viewModel);
         }
 
         public async Task<IActionResult> Details(int? id)

@@ -1,4 +1,4 @@
-@model PaginatedList<ContosoUniversity.Models.Student>
+@model ContosoUniversity.Models.ViewModels.StudentListViewModel
 
 @{
     ViewBag.Title = "Students";
@@ -14,7 +14,7 @@
 {
     <div class="form-actions no-color">
         <p>
-            Find by name: @Html.TextBox("SearchString", ViewBag.CurrentFilter as string)
+            Find by name: @Html.TextBox("SearchString", Model.CurrentFilter as string)
             <input type="submit" value="Search" class="btn btn-default" /> |
             @Html.ActionLink("Back to Full List", "Index")
         </p>
@@ -25,19 +25,19 @@
     <thead>
         <tr>
             <th>
-                @Html.ActionLink("Last Name", "Index", new { sortOrder = ViewBag.NameSortParm, currentFilter = ViewBag.CurrentFilter })
+                @Html.ActionLink("Last Name", "Index", new { sortOrder = Model.NameSortParm, currentFilter = Model.CurrentFilter })
             </th>
             <th>
                 First Name
             </th>
             <th>
-                @Html.ActionLink("Enrollment Date", "Index", new { sortOrder = ViewBag.DateSortParm, currentFilter = ViewBag.CurrentFilter })
+                @Html.ActionLink("Enrollment Date", "Index", new { sortOrder = Model.DateSortParm, currentFilter = Model.CurrentFilter })
             </th>
             <th>Actions</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model.Items)
+        @foreach (var item in Model.Students.Items)
         {
             <tr>
                 <td>
@@ -62,18 +62,18 @@
 </table>
 
 @{
-    var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
-    var nextDisabled = !Model.HasNextPage ? "disabled" : "";
+    var prevDisabled = !Model.Students.HasPreviousPage ? "disabled" : "";
+    var nextDisabled = !Model.Students.HasNextPage ? "disabled" : "";
 }
 
 @Html.ActionLink("Previous", "Index", new { 
-    sortOrder = ViewBag.CurrentSort, 
-    page = Model.PageIndex - 1, 
-    currentFilter = ViewBag.CurrentFilter 
+    sortOrder = Model.CurrentSort, 
+    page = Model.Students.PageIndex - 1, 
+    currentFilter = Model.CurrentFilter 
 }, new { @class = "btn btn-default " + prevDisabled })
 
 @Html.ActionLink("Next", "Index", new { 
-    sortOrder = ViewBag.CurrentSort, 
-    page = Model.PageIndex + 1, 
-    currentFilter = ViewBag.CurrentFilter 
+    sortOrder = Model.CurrentSort, 
+    page = Model.Students.PageIndex + 1, 
+    currentFilter = Model.CurrentFilter 
 }, new { @class = "btn btn-default " + nextDisabled })
