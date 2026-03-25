@@ -38,7 +38,7 @@ namespace ContosoUniversity.Controllers
             {
                 return BadRequest();
             }
-            Course course = await db.Courses.Include(c => c.Department).Where(c => c.CourseID == id).SingleAsync();
+            Course course = await db.Courses.Include(c => c.Department).Where(c => c.CourseID == id).SingleOrDefaultAsync();
             if (course == null)
             {
                 return NotFound();
@@ -206,7 +206,7 @@ namespace ContosoUniversity.Controllers
             {
                 return BadRequest();
             }
-            Course course = await db.Courses.Include(c => c.Department).Where(c => c.CourseID == id).SingleAsync();
+            Course course = await db.Courses.Include(c => c.Department).Where(c => c.CourseID == id).SingleOrDefaultAsync();
             if (course == null)
             {
                 return NotFound();

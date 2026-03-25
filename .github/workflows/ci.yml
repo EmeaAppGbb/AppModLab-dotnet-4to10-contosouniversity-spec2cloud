@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, final-solution ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+    
+    - name: Restore
+      run: dotnet restore src/ContosoUniversity/ContosoUniversity.csproj
+    
+    - name: Build
+      run: dotnet build src/ContosoUniversity/ContosoUniversity.csproj --no-restore --warnaserror
+    
+    - name: Restore Tests
+      run: dotnet restore src/ContosoUniversity.Tests/ContosoUniversity.Tests.csproj
+    
+    - name: Test
+      run: dotnet test src/ContosoUniversity.Tests/ContosoUniversity.Tests.csproj --no-restore --verbosity normal

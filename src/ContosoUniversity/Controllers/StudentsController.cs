@@ -75,7 +75,7 @@ namespace ContosoUniversity.Controllers
             Student student = await db.Students
                 .Include(s => s.Enrollments)
                     .ThenInclude(e => e.Course)
-                .Where(s => s.ID == id).SingleAsync();
+                .Where(s => s.ID == id).SingleOrDefaultAsync();
             if (student == null)
             {
                 return NotFound();
@@ -98,16 +98,6 @@ namespace ContosoUniversity.Controllers
         {
             try
             {
-                if (student.EnrollmentDate == DateTime.MinValue || student.EnrollmentDate == default(DateTime))
-                {
-                    ModelState.AddModelError("EnrollmentDate", "Please enter a valid enrollment date.");
-                }
-
-                if (student.EnrollmentDate < new DateTime(1753, 1, 1) || student.EnrollmentDate > new DateTime(9999, 12, 31))
-                {
-                    ModelState.AddModelError("EnrollmentDate", "Enrollment date must be between 1753 and 9999.");
-                }
-
                 if (ModelState.IsValid)
                 {
                     db.Students.Add(student);
@@ -147,16 +137,6 @@ namespace ContosoUniversity.Controllers
         {
             try
             {
-                if (student.EnrollmentDate == DateTime.MinValue || student.EnrollmentDate == default(DateTime))
-                {
-                    ModelState.AddModelError("EnrollmentDate", "Please enter a valid enrollment date.");
-                }
-
-                if (student.EnrollmentDate < new DateTime(1753, 1, 1) || student.EnrollmentDate > new DateTime(9999, 12, 31))
-                {
-                    ModelState.AddModelError("EnrollmentDate", "Enrollment date must be between 1753 and 9999.");
-                }
-
                 if (ModelState.IsValid)
                 {
                     db.Entry(student).State = EntityState.Modified;

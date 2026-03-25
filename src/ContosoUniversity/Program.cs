@@ -71,3 +71,6 @@ app.MapHub<NotificationHub>("/notificationHub");
 app.MapRazorPages();
 
 app.Run();
+
+// Make Program accessible for integration tests
+public partial class Program { }

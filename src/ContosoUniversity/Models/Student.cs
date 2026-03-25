@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using ContosoUniversity.Models.Validation;
 
 namespace ContosoUniversity.Models
 {
@@ -12,7 +13,7 @@ namespace ContosoUniversity.Models
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         [Display(Name = "Enrollment Date")]
         [Column(TypeName = "datetime2")]
-        [Range(typeof(DateTime), "1753/1/1", "9999/12/31", ErrorMessage = "Enrollment date must be between 1753 and 9999")]
+        [ValidDateRange]
         public DateTime EnrollmentDate { get; set; }
 
         public virtual ICollection<Enrollment> Enrollments { get; set; }

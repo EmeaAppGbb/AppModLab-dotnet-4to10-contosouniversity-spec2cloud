@@ -39,7 +39,11 @@ namespace ContosoUniversity.Controllers
                     .Include(i => i.CourseAssignments)
                         .ThenInclude(c => c.Course)
                     .Where(i => i.ID == id.Value)
-                    .SingleAsync();
+                    .SingleOrDefaultAsync();
+                if (instructor == null)
+                {
+                    return NotFound();
+                }
                 viewModel.Courses = instructor.CourseAssignments.Select(s => s.Course);
             }
 
@@ -47,7 +51,7 @@ namespace ContosoUniversity.Controllers
             {
                 ViewBag.CourseID = courseID.Value;
                 viewModel.Enrollments = viewModel.Courses.Where(
-                    x => x.CourseID == courseID).Single().Enrollments;
+                    x => x.CourseID == courseID).SingleOrDefault()?.Enrollments;
             }
 
             return View(viewModel);
@@ -112,12 +116,12 @@ namespace ContosoUniversity.Controllers
                 .Include(i => i.CourseAssignments)
                     .ThenInclude(c => c.Course)
                 .Where(i => i.ID == id)
-                .SingleAsync();
-            PopulateAssignedCourseData(instructor);
+                .SingleOrDefaultAsync();
             if (instructor == null)
             {
                 return NotFound();
             }
+            PopulateAssignedCourseData(instructor);
             return View(instructor);
         }
 
@@ -151,7 +155,12 @@ namespace ContosoUniversity.Controllers
                .Include(i => i.CourseAssignments)
                    .ThenInclude(c => c.Course)
                .Where(i => i.ID == id)
-               .SingleAsync();
+               .SingleOrDefaultAsync();
+
+            if (instructorToUpdate == null)
+            {
+                return NotFound();
+            }
 
             if (await TryUpdateModelAsync(instructorToUpdate, "",
                i => i.LastName, i => i.FirstMidName, i => i.HireDate, i => i.OfficeAssignment))
@@ -232,7 +241,12 @@ namespace ContosoUniversity.Controllers
             Instructor instructor = await db.Instructors
               .Include(i => i.OfficeAssignment)
               .Where(i => i.ID == id)
-              .SingleAsync();
+              .SingleOrDefaultAsync();
+
+            if (instructor == null)
+            {
+                return NotFound();
+            }
 
             db.Instructors.Remove(instructor);
 
