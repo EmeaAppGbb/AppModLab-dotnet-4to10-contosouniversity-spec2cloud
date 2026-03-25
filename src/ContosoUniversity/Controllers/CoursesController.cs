@@ -1,10 +1,12 @@
 using System;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Logging;
 using System.IO;
 using ContosoUniversity.Data;
 using ContosoUniversity.Models;
@@ -15,26 +17,28 @@ namespace ContosoUniversity.Controllers
     public class CoursesController : BaseController
     {
         private readonly IWebHostEnvironment _env;
+        private readonly ILogger<CoursesController> _logger;
 
-        public CoursesController(SchoolContext context, INotificationService notificationService, IWebHostEnvironment env)
-            : base(context, notificationService)
+        public CoursesController(SchoolContext context, INotificationService notificationService, IWebHostEnvironment env, ILogger<CoursesController> logger)
+            : base(context, notificationService, logger)
         {
             _env = env;
+            _logger = logger;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             var courses = db.Courses.Include(c => c.Department);
-            return View(courses.ToList());
+            return View(await courses.ToListAsync());
         }
 
-        public IActionResult Details(int? id)
+        public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
             {
                 return BadRequest();
             }
-            Course course = db.Courses.Include(c => c.Department).Where(c => c.CourseID == id).Single();
+            Course course = await db.Courses.Include(c => c.Department).Where(c => c.CourseID == id).SingleAsync();
             if (course == null)
             {
                 return NotFound();
@@ -50,7 +54,7 @@ namespace ContosoUniversity.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create([Bind("CourseID,Title,Credits,DepartmentID,TeachingMaterialImagePath")] Course course, IFormFile teachingMaterialImage)
+        public async Task<IActionResult> Create([Bind("CourseID,Title,Credits,DepartmentID,TeachingMaterialImagePath")] Course course, IFormFile teachingMaterialImage)
         {
             if (ModelState.IsValid)
             {
@@ -86,7 +90,7 @@ namespace ContosoUniversity.Controllers
 
                         using (var stream = new FileStream(filePath, FileMode.Create))
                         {
-                            teachingMaterialImage.CopyTo(stream);
+                            await teachingMaterialImage.CopyToAsync(stream);
                         }
                         course.TeachingMaterialImagePath = $"/Uploads/TeachingMaterials/{fileName}";
                     }
@@ -99,9 +103,9 @@ namespace ContosoUniversity.Controllers
                 }
 
                 db.Courses.Add(course);
-                db.SaveChanges();
+                await db.SaveChangesAsync();
 
-                SendEntityNotification("Course", course.CourseID.ToString(), course.Title, EntityOperation.CREATE);
+                await SendEntityNotificationAsync("Course", course.CourseID.ToString(), course.Title, EntityOperation.CREATE);
 
                 return RedirectToAction("Index");
             }
@@ -110,13 +114,13 @@ namespace ContosoUniversity.Controllers
             return View(course);
         }
 
-        public IActionResult Edit(int? id)
+        public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
             {
                 return BadRequest();
             }
-            Course course = db.Courses.Find(id);
+            Course course = await db.Courses.FindAsync(id);
             if (course == null)
             {
                 return NotFound();
@@ -127,7 +131,7 @@ namespace ContosoUniversity.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit([Bind("CourseID,Title,Credits,DepartmentID,TeachingMaterialImagePath")] Course course, IFormFile teachingMaterialImage)
+        public async Task<IActionResult> Edit([Bind("CourseID,Title,Credits,DepartmentID,TeachingMaterialImagePath")] Course course, IFormFile teachingMaterialImage)
         {
             if (ModelState.IsValid)
             {
@@ -173,7 +177,7 @@ namespace ContosoUniversity.Controllers
 
                         using (var stream = new FileStream(filePath, FileMode.Create))
                         {
-                            teachingMaterialImage.CopyTo(stream);
+                            await teachingMaterialImage.CopyToAsync(stream);
                         }
                         course.TeachingMaterialImagePath = $"/Uploads/TeachingMaterials/{fileName}";
                     }
@@ -186,9 +190,9 @@ namespace ContosoUniversity.Controllers
                 }
 
                 db.Entry(course).State = EntityState.Modified;
-                db.SaveChanges();
+                await db.SaveChangesAsync();
 
-                SendEntityNotification("Course", course.CourseID.ToString(), course.Title, EntityOperation.UPDATE);
+                await SendEntityNotificationAsync("Course", course.CourseID.ToString(), course.Title, EntityOperation.UPDATE);
 
                 return RedirectToAction("Index");
             }
@@ -196,13 +200,13 @@ namespace ContosoUniversity.Controllers
             return View(course);
         }
 
-        public IActionResult Delete(int? id)
+        public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
             {
                 return BadRequest();
             }
-            Course course = db.Courses.Include(c => c.Department).Where(c => c.CourseID == id).Single();
+            Course course = await db.Courses.Include(c => c.Department).Where(c => c.CourseID == id).SingleAsync();
             if (course == null)
             {
                 return NotFound();
@@ -212,9 +216,9 @@ namespace ContosoUniversity.Controllers
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            Course course = db.Courses.Find(id);
+            Course course = await db.Courses.FindAsync(id);
             var courseTitle = course.Title;
 
             if (!string.IsNullOrEmpty(course.TeachingMaterialImagePath))
@@ -228,15 +232,15 @@ namespace ContosoUniversity.Controllers
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"Error deleting file: {ex.Message}");
+                        _logger.LogWarning($"Error deleting file: {ex.Message}");
                     }
                 }
             }
 
             db.Courses.Remove(course);
-            db.SaveChanges();
+            await db.SaveChangesAsync();
 
-            SendEntityNotification("Course", id.ToString(), courseTitle, EntityOperation.DELETE);
+            await SendEntityNotificationAsync("Course", id.ToString(), courseTitle, EntityOperation.DELETE);
 
             return RedirectToAction("Index");
         }

@@ -1,16 +1,15 @@
-// Notification System for Admin Users
+// Notification System for Admin Users — SignalR Real-Time
 (function() {
     'use strict';
 
     var NotificationSystem = {
         container: null,
         notificationCount: 0,
-        checkInterval: 5000, // Check every 5 seconds
         maxNotifications: 5,
 
         init: function() {
             this.createContainer();
-            this.startPolling();
+            this.connectSignalR();
         },
 
         createContainer: function() {
@@ -19,20 +18,35 @@
             document.body.appendChild(this.container);
         },
 
-        startPolling: function() {
+        connectSignalR: function() {
             var self = this;
-            // Check immediately
-            this.checkForNotifications();
-            
-            // Then check every interval
-            setInterval(function() {
-                self.checkForNotifications();
-            }, this.checkInterval);
+
+            var connection = new signalR.HubConnectionBuilder()
+                .withUrl("/notificationHub")
+                .withAutomaticReconnect()
+                .build();
+
+            connection.on("ReceiveNotification", function (notification) {
+                self.showNotification(notification);
+            });
+
+            connection.start().catch(function (err) {
+                console.error("SignalR connection error: ", err);
+                // Fallback to polling if SignalR fails
+                self.startPolling();
+            });
         },
 
-        checkForNotifications: function() {
+        startPolling: function() {
             var self = this;
-            
+            setInterval(function() {
+                self.fetchNotifications();
+            }, 5000);
+        },
+
+        fetchNotifications: function() {
+            var self = this;
+
             fetch('/Notifications/GetNotifications', {
                 method: 'GET',
                 headers: {
@@ -54,7 +68,7 @@
                 }
             })
             .catch(function(error) {
-                console.log('Error fetching notifications:', error);
+                console.error('Notification fetch error:', error);
             });
         },
 
@@ -66,22 +80,28 @@
             notificationEl.className = 'notification notification-info';
             
             // Determine notification type based on operation
+            var operation = notification.Operation || notification.operation;
             var type = 'info';
-            if (notification.Operation === 'CREATE') {
+            if (operation === 'CREATE') {
                 type = 'success';
-            } else if (notification.Operation === 'DELETE') {
+            } else if (operation === 'DELETE') {
                 type = 'warning';
             }
             
             notificationEl.className = 'notification notification-' + type;
             
-            var timeAgo = this.getTimeAgo(new Date(notification.CreatedAt));
+            var createdAt = notification.CreatedAt || notification.createdAt;
+            var timeAgo = this.getTimeAgo(new Date(createdAt));
             
+            var message = notification.Message || notification.message;
+            var createdBy = notification.CreatedBy || notification.createdBy;
+            var entityType = notification.EntityType || notification.entityType;
+
             notificationEl.innerHTML = 
                 '<button class="notification-close" onclick="NotificationSystem.closeNotification(this)">&times;</button>' +
-                '<div class="notification-title">' + notification.Operation + ' - ' + notification.EntityType + '</div>' +
-                '<div class="notification-message">' + notification.Message + '</div>' +
-                '<div class="notification-time">By ' + notification.CreatedBy + ' • ' + timeAgo + '</div>';
+                '<div class="notification-title">' + operation + ' - ' + entityType + '</div>' +
+                '<div class="notification-message">' + message + '</div>' +
+                '<div class="notification-time">By ' + createdBy + ' • ' + timeAgo + '</div>';
             
             // Add to container
             this.container.appendChild(notificationEl);

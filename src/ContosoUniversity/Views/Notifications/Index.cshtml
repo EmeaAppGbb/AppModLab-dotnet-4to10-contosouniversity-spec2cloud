@@ -72,21 +72,22 @@
             </div>
             <div class="panel-body">
                 <div class="alert alert-warning" role="alert">
-                    <strong>Note:</strong> This notification system uses Microsoft Message Queuing (MSMQ) as the underlying technology for reliable message delivery.
+                    <strong>Note:</strong> This notification system uses SignalR for real-time push notifications, with database polling as a fallback.
                 </div>
                 
                 <h4>Features:</h4>
                 <ul>
-                    <li><strong>Real-time delivery</strong> - Notifications appear immediately when operations occur</li>
-                    <li><strong>Reliable messaging</strong> - MSMQ ensures messages are not lost</li>
+                    <li><strong>Real-time delivery</strong> - SignalR pushes notifications instantly when operations occur</li>
+                    <li><strong>Automatic reconnect</strong> - SignalR reconnects automatically if connection drops</li>
+                    <li><strong>Polling fallback</strong> - Falls back to HTTP polling if SignalR is unavailable</li>
                     <li><strong>Admin-only</strong> - Only administrators receive these notifications</li>
-                    <li><strong>Auto-dismiss</strong> - Notifications automatically disappear after 8 seconds</li>
+                    <li><strong>Auto-dismiss</strong> - Notifications automatically disappear after 60 seconds</li>
                     <li><strong>User-friendly</strong> - Click the × to dismiss notifications manually</li>
                 </ul>
                 
-                <h4>Queue Information:</h4>
-                <p><strong>Queue Path:</strong> <code>.\\Private$\\ContosoUniversityNotifications</code></p>
-                <p><strong>Check Interval:</strong> 5 seconds</p>
+                <h4>Technology:</h4>
+                <p><strong>Transport:</strong> <code>SignalR (/notificationHub)</code></p>
+                <p><strong>Fallback Interval:</strong> 5 seconds (HTTP polling)</p>
                 <p><strong>Max Visible Notifications:</strong> 5 at a time</p>
             </div>
         </div>

@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using ContosoUniversity.Data;
 using ContosoUniversity.Models;
 using ContosoUniversity.Models.SchoolViewModels;
@@ -12,10 +14,15 @@ namespace ContosoUniversity.Controllers
 {
     public class InstructorsController : BaseController
     {
-        public InstructorsController(SchoolContext context, INotificationService notificationService)
-            : base(context, notificationService) { }
+        private readonly ILogger<InstructorsController> _logger;
 
-        public IActionResult Index(int? id, int? courseID)
+        public InstructorsController(SchoolContext context, INotificationService notificationService, ILogger<InstructorsController> logger)
+            : base(context, notificationService, logger)
+        {
+            _logger = logger;
+        }
+
+        public async Task<IActionResult> Index(int? id, int? courseID)
         {
             var viewModel = new InstructorIndexData();
             viewModel.Instructors = db.Instructors
@@ -28,8 +35,12 @@ namespace ContosoUniversity.Controllers
             if (id != null)
             {
                 ViewBag.InstructorID = id.Value;
-                viewModel.Courses = viewModel.Instructors.Where(
-                    i => i.ID == id.Value).Single().CourseAssignments.Select(s => s.Course);
+                var instructor = await db.Instructors
+                    .Include(i => i.CourseAssignments)
+                        .ThenInclude(c => c.Course)
+                    .Where(i => i.ID == id.Value)
+                    .SingleAsync();
+                viewModel.Courses = instructor.CourseAssignments.Select(s => s.Course);
             }
 
             if (courseID != null)
@@ -42,13 +53,13 @@ namespace ContosoUniversity.Controllers
             return View(viewModel);
         }
 
-        public IActionResult Details(int? id)
+        public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
             {
                 return BadRequest();
             }
-            Instructor instructor = db.Instructors.Find(id);
+            Instructor instructor = await db.Instructors.FindAsync(id);
             if (instructor == null)
             {
                 return NotFound();
@@ -66,7 +77,7 @@ namespace ContosoUniversity.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create([Bind("LastName,FirstMidName,HireDate,OfficeAssignment")] Instructor instructor, string[] selectedCourses)
+        public async Task<IActionResult> Create([Bind("LastName,FirstMidName,HireDate,OfficeAssignment")] Instructor instructor, string[] selectedCourses)
         {
             if (selectedCourses != null)
             {
@@ -80,9 +91,9 @@ namespace ContosoUniversity.Controllers
             if (ModelState.IsValid)
             {
                 db.Instructors.Add(instructor);
-                db.SaveChanges();
+                await db.SaveChangesAsync();
 
-                SendEntityNotification("Instructor", instructor.ID.ToString(), EntityOperation.CREATE);
+                await SendEntityNotificationAsync("Instructor", instructor.ID.ToString(), EntityOperation.CREATE);
 
                 return RedirectToAction("Index");
             }
@@ -90,18 +101,18 @@ namespace ContosoUniversity.Controllers
             return View(instructor);
         }
 
-        public IActionResult Edit(int? id)
+        public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
             {
                 return BadRequest();
             }
-            Instructor instructor = db.Instructors
+            Instructor instructor = await db.Instructors
                 .Include(i => i.OfficeAssignment)
                 .Include(i => i.CourseAssignments)
                     .ThenInclude(c => c.Course)
                 .Where(i => i.ID == id)
-                .Single();
+                .SingleAsync();
             PopulateAssignedCourseData(instructor);
             if (instructor == null)
             {
@@ -129,21 +140,21 @@ namespace ContosoUniversity.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int? id, string[] selectedCourses)
+        public async Task<IActionResult> Edit(int? id, string[] selectedCourses)
         {
             if (id == null)
             {
                 return BadRequest();
             }
-            var instructorToUpdate = db.Instructors
+            var instructorToUpdate = await db.Instructors
                .Include(i => i.OfficeAssignment)
                .Include(i => i.CourseAssignments)
                    .ThenInclude(c => c.Course)
                .Where(i => i.ID == id)
-               .Single();
+               .SingleAsync();
 
-            if (TryUpdateModelAsync(instructorToUpdate, "",
-               i => i.LastName, i => i.FirstMidName, i => i.HireDate, i => i.OfficeAssignment).Result)
+            if (await TryUpdateModelAsync(instructorToUpdate, "",
+               i => i.LastName, i => i.FirstMidName, i => i.HireDate, i => i.OfficeAssignment))
             {
                 try
                 {
@@ -154,9 +165,9 @@ namespace ContosoUniversity.Controllers
 
                     UpdateInstructorCourses(selectedCourses, instructorToUpdate);
 
-                    db.SaveChanges();
+                    await db.SaveChangesAsync();
 
-                    SendEntityNotification("Instructor", instructorToUpdate.ID.ToString(), EntityOperation.UPDATE);
+                    await SendEntityNotificationAsync("Instructor", instructorToUpdate.ID.ToString(), EntityOperation.UPDATE);
 
                     return RedirectToAction("Index");
                 }
@@ -200,13 +211,13 @@ namespace ContosoUniversity.Controllers
             }
         }
 
-        public IActionResult Delete(int? id)
+        public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
             {
                 return BadRequest();
             }
-            Instructor instructor = db.Instructors.Find(id);
+            Instructor instructor = await db.Instructors.FindAsync(id);
             if (instructor == null)
             {
                 return NotFound();
@@ -216,26 +227,26 @@ namespace ContosoUniversity.Controllers
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            Instructor instructor = db.Instructors
+            Instructor instructor = await db.Instructors
               .Include(i => i.OfficeAssignment)
               .Where(i => i.ID == id)
-              .Single();
+              .SingleAsync();
 
             db.Instructors.Remove(instructor);
 
-            var department = db.Departments
+            var department = await db.Departments
                 .Where(d => d.InstructorID == id)
-                .SingleOrDefault();
+                .SingleOrDefaultAsync();
             if (department != null)
             {
                 department.InstructorID = null;
             }
 
-            db.SaveChanges();
+            await db.SaveChangesAsync();
 
-            SendEntityNotification("Instructor", id.ToString(), EntityOperation.DELETE);
+            await SendEntityNotificationAsync("Instructor", id.ToString(), EntityOperation.DELETE);
 
             return RedirectToAction("Index");
         }

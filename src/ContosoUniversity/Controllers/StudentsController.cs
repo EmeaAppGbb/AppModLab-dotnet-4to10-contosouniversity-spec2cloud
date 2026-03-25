@@ -1,20 +1,26 @@
 using System;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using ContosoUniversity.Data;
 using ContosoUniversity.Models;
 using ContosoUniversity.Services;
-using System.Diagnostics;
 
 namespace ContosoUniversity.Controllers
 {
     public class StudentsController : BaseController
     {
-        public StudentsController(SchoolContext context, INotificationService notificationService)
-            : base(context, notificationService) { }
+        private readonly ILogger<StudentsController> _logger;
 
-        public IActionResult Index(string sortOrder, string currentFilter, string searchString, int? page)
+        public StudentsController(SchoolContext context, INotificationService notificationService, ILogger<StudentsController> logger)
+            : base(context, notificationService, logger)
+        {
+            _logger = logger;
+        }
+
+        public async Task<IActionResult> Index(string sortOrder, string currentFilter, string searchString, int? page)
         {
             ViewBag.CurrentSort = sortOrder;
             ViewBag.NameSortParm = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
@@ -57,19 +63,19 @@ namespace ContosoUniversity.Controllers
 
             int pageSize = 10;
             int pageNumber = (page ?? 1);
-            return View(PaginatedList<Student>.Create(students, pageNumber, pageSize));
+            return View(await PaginatedList<Student>.CreateAsync(students, pageNumber, pageSize));
         }
 
-        public IActionResult Details(int? id)
+        public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
             {
                 return BadRequest();
             }
-            Student student = db.Students
+            Student student = await db.Students
                 .Include(s => s.Enrollments)
                     .ThenInclude(e => e.Course)
-                .Where(s => s.ID == id).Single();
+                .Where(s => s.ID == id).SingleAsync();
             if (student == null)
             {
                 return NotFound();
@@ -88,7 +94,7 @@ namespace ContosoUniversity.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create([Bind("LastName,FirstMidName,EnrollmentDate")] Student student)
+        public async Task<IActionResult> Create([Bind("LastName,FirstMidName,EnrollmentDate")] Student student)
         {
             try
             {
@@ -105,29 +111,29 @@ namespace ContosoUniversity.Controllers
                 if (ModelState.IsValid)
                 {
                     db.Students.Add(student);
-                    db.SaveChanges();
+                    await db.SaveChangesAsync();
 
                     var studentName = $"{student.FirstMidName} {student.LastName}";
-                    SendEntityNotification("Student", student.ID.ToString(), studentName, EntityOperation.CREATE);
+                    await SendEntityNotificationAsync("Student", student.ID.ToString(), studentName, EntityOperation.CREATE);
 
                     return RedirectToAction("Index");
                 }
             }
             catch (Exception ex)
             {
-                Trace.TraceError($"Error creating student: {ex.Message}");
+                _logger.LogError($"Error creating student: {ex.Message}");
                 ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists see your system administrator.");
             }
             return View(student);
         }
 
-        public IActionResult Edit(int? id)
+        public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
             {
                 return BadRequest();
             }
-            Student student = db.Students.Find(id);
+            Student student = await db.Students.FindAsync(id);
             if (student == null)
             {
                 return NotFound();
@@ -137,7 +143,7 @@ namespace ContosoUniversity.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit([Bind("ID,LastName,FirstMidName,EnrollmentDate")] Student student)
+        public async Task<IActionResult> Edit([Bind("ID,LastName,FirstMidName,EnrollmentDate")] Student student)
         {
             try
             {
@@ -154,29 +160,29 @@ namespace ContosoUniversity.Controllers
                 if (ModelState.IsValid)
                 {
                     db.Entry(student).State = EntityState.Modified;
-                    db.SaveChanges();
+                    await db.SaveChangesAsync();
 
                     var studentName = $"{student.FirstMidName} {student.LastName}";
-                    SendEntityNotification("Student", student.ID.ToString(), studentName, EntityOperation.UPDATE);
+                    await SendEntityNotificationAsync("Student", student.ID.ToString(), studentName, EntityOperation.UPDATE);
 
                     return RedirectToAction("Index");
                 }
             }
             catch (Exception ex)
             {
-                Trace.TraceError($"Error editing student: {ex.Message}");
+                _logger.LogError($"Error editing student: {ex.Message}");
                 ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists see your system administrator.");
             }
             return View(student);
         }
 
-        public IActionResult Delete(int? id)
+        public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
             {
                 return BadRequest();
             }
-            Student student = db.Students.Find(id);
+            Student student = await db.Students.FindAsync(id);
             if (student == null)
             {
                 return NotFound();
@@ -186,22 +192,22 @@ namespace ContosoUniversity.Controllers
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
             try
             {
-                Student student = db.Students.Find(id);
+                Student student = await db.Students.FindAsync(id);
                 var studentName = $"{student.FirstMidName} {student.LastName}";
                 db.Students.Remove(student);
-                db.SaveChanges();
+                await db.SaveChangesAsync();
 
-                SendEntityNotification("Student", id.ToString(), studentName, EntityOperation.DELETE);
+                await SendEntityNotificationAsync("Student", id.ToString(), studentName, EntityOperation.DELETE);
 
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
-                Trace.TraceError($"Error deleting student: {ex.Message}");
+                _logger.LogError($"Error deleting student: {ex.Message}");
                 TempData["ErrorMessage"] = "Unable to delete the student. Try again, and if the problem persists see your system administrator.";
                 return RedirectToAction("Index");
             }

@@ -1,5 +1,8 @@
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using ContosoUniversity.Data;
 using ContosoUniversity.Models.SchoolViewModels;
 using ContosoUniversity.Services;
@@ -8,15 +11,20 @@ namespace ContosoUniversity.Controllers
 {
     public class HomeController : BaseController
     {
-        public HomeController(SchoolContext context, INotificationService notificationService)
-            : base(context, notificationService) { }
+        private readonly ILogger<HomeController> _logger;
+
+        public HomeController(SchoolContext context, INotificationService notificationService, ILogger<HomeController> logger)
+            : base(context, notificationService, logger)
+        {
+            _logger = logger;
+        }
 
         public IActionResult Index()
         {
             return View();
         }
 
-        public IActionResult About()
+        public async Task<IActionResult> About()
         {
             IQueryable<EnrollmentDateGroup> data =
                 from student in db.Students
@@ -26,7 +34,7 @@ namespace ContosoUniversity.Controllers
                     EnrollmentDate = dateGroup.Key,
                     StudentCount = dateGroup.Count()
                 };
-            return View(data.ToList());
+            return View(await data.ToListAsync());
         }
 
         public IActionResult Contact()
@@ -40,7 +48,7 @@ namespace ContosoUniversity.Controllers
             return View();
         }
 
-        public IActionResult Unauthorized()
+        public new IActionResult Unauthorized()
         {
             ViewBag.Message = "You don't have permission to access this resource.";
             return View();

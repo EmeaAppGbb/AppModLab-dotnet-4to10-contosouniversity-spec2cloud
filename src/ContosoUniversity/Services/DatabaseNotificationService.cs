@@ -1,25 +1,34 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using ContosoUniversity.Data;
+using ContosoUniversity.Hubs;
 using ContosoUniversity.Models;
+using Microsoft.AspNetCore.SignalR;
 
 namespace ContosoUniversity.Services
 {
     public class DatabaseNotificationService : INotificationService
     {
         private readonly SchoolContext _context;
+        private readonly IHubContext<NotificationHub> _hubContext;
+        private readonly ILogger<DatabaseNotificationService> _logger;
 
-        public DatabaseNotificationService(SchoolContext context)
+        public DatabaseNotificationService(SchoolContext context, IHubContext<NotificationHub> hubContext, ILogger<DatabaseNotificationService> logger)
         {
             _context = context;
+            _hubContext = hubContext;
+            _logger = logger;
         }
 
-        public void SendNotification(string entityType, string entityId, EntityOperation operation, string userName = null)
+        public async Task SendNotificationAsync(string entityType, string entityId, EntityOperation operation, string userName = null)
         {
-            SendNotification(entityType, entityId, null, operation, userName);
+            await SendNotificationAsync(entityType, entityId, null, operation, userName);
         }
 
-        public void SendNotification(string entityType, string entityId, string entityDisplayName, EntityOperation operation, string userName = null)
+        public async Task SendNotificationAsync(string entityType, string entityId, string entityDisplayName, EntityOperation operation, string userName = null)
         {
             try
             {
@@ -35,11 +44,16 @@ namespace ContosoUniversity.Services
                 };
 
                 _context.Notifications.Add(notification);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
+
+                if (_hubContext != null)
+                {
+                    await _hubContext.Clients.All.SendAsync("ReceiveNotification", notification);
+                }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Failed to send notification: {ex.Message}");
+                _logger.LogWarning($"Failed to send notification: {ex.Message}");
             }
         }
 
@@ -51,14 +65,14 @@ namespace ContosoUniversity.Services
                 .FirstOrDefault();
         }
 
-        public void MarkAsRead(int notificationId)
+        public async Task MarkAsReadAsync(int notificationId)
         {
-            var notification = _context.Notifications.Find(notificationId);
+            var notification = await _context.Notifications.FindAsync(notificationId);
             if (notification != null)
             {
                 notification.IsRead = true;
                 notification.ReadAt = DateTime.UtcNow;
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
         }
 

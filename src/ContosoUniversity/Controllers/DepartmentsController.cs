@@ -1,8 +1,10 @@
 using System;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Extensions.Logging;
 using ContosoUniversity.Data;
 using ContosoUniversity.Models;
 using ContosoUniversity.Services;
@@ -11,22 +13,27 @@ namespace ContosoUniversity.Controllers
 {
     public class DepartmentsController : BaseController
     {
-        public DepartmentsController(SchoolContext context, INotificationService notificationService)
-            : base(context, notificationService) { }
+        private readonly ILogger<DepartmentsController> _logger;
 
-        public IActionResult Index()
+        public DepartmentsController(SchoolContext context, INotificationService notificationService, ILogger<DepartmentsController> logger)
+            : base(context, notificationService, logger)
         {
-            var departments = db.Departments.Include(d => d.Administrator);
-            return View(departments.ToList());
+            _logger = logger;
         }
 
-        public IActionResult Details(int? id)
+        public async Task<IActionResult> Index()
+        {
+            var departments = db.Departments.Include(d => d.Administrator);
+            return View(await departments.ToListAsync());
+        }
+
+        public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
             {
                 return BadRequest();
             }
-            Department department = db.Departments.Find(id);
+            Department department = await db.Departments.FindAsync(id);
             if (department == null)
             {
                 return NotFound();
@@ -42,14 +49,14 @@ namespace ContosoUniversity.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create([Bind("Name,Budget,StartDate,InstructorID")] Department department)
+        public async Task<IActionResult> Create([Bind("Name,Budget,StartDate,InstructorID")] Department department)
         {
             if (ModelState.IsValid)
             {
                 db.Departments.Add(department);
-                db.SaveChanges();
+                await db.SaveChangesAsync();
 
-                SendEntityNotification("Department", department.DepartmentID.ToString(), department.Name, EntityOperation.CREATE);
+                await SendEntityNotificationAsync("Department", department.DepartmentID.ToString(), department.Name, EntityOperation.CREATE);
 
                 return RedirectToAction("Index");
             }
@@ -58,13 +65,13 @@ namespace ContosoUniversity.Controllers
             return View(department);
         }
 
-        public IActionResult Edit(int? id)
+        public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
             {
                 return BadRequest();
             }
-            Department department = db.Departments.Find(id);
+            Department department = await db.Departments.FindAsync(id);
             if (department == null)
             {
                 return NotFound();
@@ -75,16 +82,16 @@ namespace ContosoUniversity.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit([Bind("DepartmentID,Name,Budget,StartDate,InstructorID,RowVersion")] Department department)
+        public async Task<IActionResult> Edit([Bind("DepartmentID,Name,Budget,StartDate,InstructorID,RowVersion")] Department department)
         {
             try
             {
                 if (ModelState.IsValid)
                 {
                     db.Entry(department).State = EntityState.Modified;
-                    db.SaveChanges();
+                    await db.SaveChangesAsync();
 
-                    SendEntityNotification("Department", department.DepartmentID.ToString(), department.Name, EntityOperation.UPDATE);
+                    await SendEntityNotificationAsync("Department", department.DepartmentID.ToString(), department.Name, EntityOperation.UPDATE);
 
                     return RedirectToAction("Index");
                 }
@@ -93,7 +100,7 @@ namespace ContosoUniversity.Controllers
             {
                 var entry = ex.Entries.Single();
                 var clientValues = (Department)entry.Entity;
-                var databaseEntry = entry.GetDatabaseValues();
+                var databaseEntry = await entry.GetDatabaseValuesAsync();
 
                 if (databaseEntry == null)
                 {
@@ -111,7 +118,7 @@ namespace ContosoUniversity.Controllers
                         ModelState.AddModelError("StartDate", $"Current value: {databaseValues.StartDate:d}");
                     if (databaseValues.InstructorID != clientValues.InstructorID)
                     {
-                        var instructor = db.Instructors.Find(databaseValues.InstructorID);
+                        var instructor = await db.Instructors.FindAsync(databaseValues.InstructorID);
                         ModelState.AddModelError("InstructorID", $"Current value: {instructor?.FullName}");
                     }
 
@@ -129,13 +136,13 @@ namespace ContosoUniversity.Controllers
             return View(department);
         }
 
-        public IActionResult Delete(int? id)
+        public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
             {
                 return BadRequest();
             }
-            Department department = db.Departments.Find(id);
+            Department department = await db.Departments.FindAsync(id);
             if (department == null)
             {
                 return NotFound();
@@ -145,14 +152,14 @@ namespace ContosoUniversity.Controllers
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            Department department = db.Departments.Find(id);
+            Department department = await db.Departments.FindAsync(id);
             var departmentName = department.Name;
             db.Departments.Remove(department);
-            db.SaveChanges();
+            await db.SaveChangesAsync();
 
-            SendEntityNotification("Department", id.ToString(), departmentName, EntityOperation.DELETE);
+            await SendEntityNotificationAsync("Department", id.ToString(), departmentName, EntityOperation.DELETE);
 
             return RedirectToAction("Index");
         }

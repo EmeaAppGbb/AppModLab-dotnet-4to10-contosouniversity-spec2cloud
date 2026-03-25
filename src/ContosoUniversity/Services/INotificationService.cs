@@ -1,12 +1,13 @@
 using ContosoUniversity.Models;
+using System.Threading.Tasks;
 
 namespace ContosoUniversity.Services
 {
     public interface INotificationService
     {
-        void SendNotification(string entityType, string entityId, EntityOperation operation, string userName = null);
-        void SendNotification(string entityType, string entityId, string entityDisplayName, EntityOperation operation, string userName = null);
+        Task SendNotificationAsync(string entityType, string entityId, EntityOperation operation, string userName = null);
+        Task SendNotificationAsync(string entityType, string entityId, string entityDisplayName, EntityOperation operation, string userName = null);
         Notification ReceiveNotification();
-        void MarkAsRead(int notificationId);
+        Task MarkAsReadAsync(int notificationId);
     }
 }

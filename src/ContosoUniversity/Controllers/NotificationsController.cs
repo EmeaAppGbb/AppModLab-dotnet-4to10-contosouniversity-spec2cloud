@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using ContosoUniversity.Services;
 using ContosoUniversity.Models;
 using ContosoUniversity.Data;
@@ -10,26 +13,31 @@ namespace ContosoUniversity.Controllers
 {
     public class NotificationsController : BaseController
     {
-        public NotificationsController(SchoolContext context, INotificationService notificationService)
-            : base(context, notificationService) { }
+        private readonly ILogger<NotificationsController> _logger;
+
+        public NotificationsController(SchoolContext context, INotificationService notificationService, ILogger<NotificationsController> logger)
+            : base(context, notificationService, logger)
+        {
+            _logger = logger;
+        }
 
         [HttpGet]
-        public JsonResult GetNotifications()
+        public async Task<JsonResult> GetNotifications()
         {
             var notifications = new List<Notification>();
 
             try
             {
                 // Read unread notifications from database
-                notifications = db.Notifications
+                notifications = await db.Notifications
                     .Where(n => !n.IsRead)
                     .OrderByDescending(n => n.CreatedAt)
                     .Take(10)
-                    .ToList();
+                    .ToListAsync();
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error retrieving notifications: {ex.Message}");
+                _logger.LogWarning($"Error retrieving notifications: {ex.Message}");
                 return Json(new { success = false, message = "Error retrieving notifications" });
             }
 
@@ -42,16 +50,16 @@ namespace ContosoUniversity.Controllers
         }
 
         [HttpPost]
-        public JsonResult MarkAsRead(int id)
+        public async Task<JsonResult> MarkAsRead(int id)
         {
             try
             {
-                notificationService.MarkAsRead(id);
+                await notificationService.MarkAsReadAsync(id);
                 return Json(new { success = true });
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error marking notification as read: {ex.Message}");
+                _logger.LogWarning($"Error marking notification as read: {ex.Message}");
                 return Json(new { success = false, message = "Error updating notification" });
             }
         }
