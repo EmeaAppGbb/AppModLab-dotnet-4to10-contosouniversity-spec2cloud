@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -9,6 +10,7 @@ using ContosoUniversity.Services;
 
 namespace ContosoUniversity.Controllers
 {
+    [AllowAnonymous]
     public class HomeController : BaseController
     {
         private readonly ILogger<HomeController> _logger;

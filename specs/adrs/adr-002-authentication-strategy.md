@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Accepted
 
 ## Context
 
@@ -66,10 +66,7 @@ Use a third-party identity-as-a-service platform.
 
 ## Decision
 
-**Deferred** — This decision depends on the deployment context:
-- If deploying to Azure with organizational users → **Option B (Entra ID)**
-- If deploying as a standalone application → **Option A (ASP.NET Core Identity)**
-- User should decide based on their organizational context
+**Option A: ASP.NET Core Identity** — chosen for its zero external dependencies, self-contained architecture, and built-in role management. Identity tables are co-located in the existing SchoolContext database. Roles (Admin, Faculty, ReadOnly) are seeded on startup. This keeps the application fully self-contained without requiring an external identity provider, while still allowing future migration to Entra ID if organizational SSO is needed.
 
 ## Consequences
 

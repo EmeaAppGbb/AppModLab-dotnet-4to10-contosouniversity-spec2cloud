@@ -1,14 +1,32 @@
 using ContosoUniversity.Data;
 using ContosoUniversity.Hubs;
 using ContosoUniversity.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    var policy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+    options.Filters.Add(new AuthorizeFilter(policy));
+});
 builder.Services.AddDbContext<SchoolContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddDefaultIdentity<IdentityUser>(options => {
+    options.SignIn.RequireConfirmedAccount = false;
+    options.Password.RequiredLength = 6;
+    options.Password.RequireNonAlphanumeric = false;
+})
+.AddRoles<IdentityRole>()
+.AddEntityFrameworkStores<SchoolContext>();
+
 builder.Services.AddScoped<INotificationService, DatabaseNotificationService>();
 builder.Services.AddSignalR();
 
@@ -19,6 +37,7 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<SchoolContext>();
     DbInitializer.Initialize(context);
+    await IdentitySeeder.SeedAsync(scope.ServiceProvider);
 }
 
 if (!app.Environment.IsDevelopment())
@@ -40,6 +59,7 @@ app.Use(async (context, next) =>
 
 app.UseStaticFiles();
 app.UseRouting();
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
@@ -47,5 +67,7 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.MapHub<NotificationHub>("/notificationHub");
+
+app.MapRazorPages();
 
 app.Run();

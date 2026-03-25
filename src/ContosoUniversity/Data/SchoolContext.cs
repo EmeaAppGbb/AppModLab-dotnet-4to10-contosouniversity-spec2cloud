@@ -1,11 +1,12 @@
 using System;
 using System.Linq;
 using ContosoUniversity.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace ContosoUniversity.Data
 {
-    public class SchoolContext : DbContext
+    public class SchoolContext : IdentityDbContext
     {
         public SchoolContext(DbContextOptions<SchoolContext> options) : base(options)
         {
@@ -23,6 +24,8 @@ namespace ContosoUniversity.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+
             // Configure all DateTime properties to use datetime2
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {

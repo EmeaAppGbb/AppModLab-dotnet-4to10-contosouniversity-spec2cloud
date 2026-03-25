@@ -30,7 +30,7 @@ namespace ContosoUniversity.Controllers
         {
             try
             {
-                var userName = "System";
+                var userName = User?.Identity?.Name ?? "System";
                 await notificationService.SendNotificationAsync(entityType, entityId, entityDisplayName, operation, userName);
             }
             catch (Exception ex)
