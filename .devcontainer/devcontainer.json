@@ -1,0 +1,64 @@
+{
+    "name": "Contoso University - .NET Modernization Workshop",
+    "image": "mcr.microsoft.com/devcontainers/dotnet:1-9.0",
+    "features": {
+        "ghcr.io/devcontainers/features/dotnet:2": {
+            "version": "none",
+            "additionalVersions": "10.0"
+        },
+        "ghcr.io/devcontainers/features/github-cli:1": {},
+        "ghcr.io/devcontainers/features/azure-cli:1": {},
+        "ghcr.io/devcontainers/features/powershell:1": {}
+    },
+    "containerEnv": {
+        "DOTNET_GENERATE_ASPNET_CERTIFICATE": "true",
+        "ASPNETCORE_ENVIRONMENT": "Development"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-dotnettools.csharp",
+                "ms-dotnettools.csdevkit",
+                "ms-dotnettools.vscode-dotnet-runtime",
+                "ms-azuretools.vscode-azureappservice",
+                "ms-azuretools.vscode-azureresourcegroups",
+                "github.copilot",
+                "github.copilot-chat",
+                "humao.rest-client",
+                "eamodio.gitlens",
+                "ms-mssql.mssql"
+            ],
+            "settings": {
+                "dotnet.defaultSolution": "src/ContosoUniversity/ContosoUniversity.sln",
+                "editor.formatOnSave": true,
+                "omnisharp.enableEditorConfigSupport": true,
+                "files.exclude": {
+                    "**/bin": true,
+                    "**/obj": true
+                }
+            }
+        }
+    },
+    "forwardPorts": [
+        5000,
+        5001,
+        1433
+    ],
+    "portsAttributes": {
+        "5000": {
+            "label": "Web App (HTTP)",
+            "onAutoForward": "notify"
+        },
+        "5001": {
+            "label": "Web App (HTTPS)",
+            "onAutoForward": "notify"
+        },
+        "1433": {
+            "label": "SQL Server",
+            "onAutoForward": "silent"
+        }
+    },
+    "postCreateCommand": "bash .devcontainer/post-create.sh",
+    "postStartCommand": "bash .devcontainer/post-start.sh",
+    "remoteUser": "vscode"
+}

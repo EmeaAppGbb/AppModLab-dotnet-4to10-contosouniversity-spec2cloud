@@ -1,0 +1,15 @@
+{
+    "recommendations": [
+        "ms-dotnettools.csharp",
+        "ms-dotnettools.csdevkit",
+        "ms-dotnettools.vscode-dotnet-runtime",
+        "ms-azuretools.vscode-azureappservice",
+        "ms-azuretools.vscode-azureresourcegroups",
+        "github.copilot",
+        "github.copilot-chat",
+        "humao.rest-client",
+        "eamodio.gitlens",
+        "ms-mssql.mssql",
+        "ms-vscode.powershell"
+    ]
+}

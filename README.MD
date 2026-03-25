@@ -1,5 +1,5 @@
 ```
- ██████╗ ██████╗ ███╗   ██╗████████╗ ██████╗ ███████╗ ██████╗ 
+ ██████╗ ██████╗ ███╗   ██╗████████╗ ██████╗ ███████╗ ██████╗
 ██╔════╝██╔═══██╗████╗  ██║╚══██╔══╝██╔═══██╗██╔════╝██╔═══██╗
 ██║     ██║   ██║██╔██╗ ██║   ██║   ██║   ██║███████╗██║   ██║
 ██║     ██║   ██║██║╚██╗██║   ██║   ██║   ██║╚════██║██║   ██║
@@ -7,16 +7,16 @@
  ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝   ╚═╝    ╚═════╝ ╚══════╝ ╚═════╝
 ██╗   ██╗███╗   ██╗██╗██╗   ██╗███████╗██████╗ ███████╗██╗████████╗██╗   ██╗
 ██║   ██║████╗  ██║██║██║   ██║██╔════╝██╔══██╗██╔════╝██║╚══██╔══╝╚██╗ ██╔╝
-██║   ██║██╔██╗ ██║██║██║   ██║█████╗  ██████╔╝███████╗██║   ██║    ╚████╔╝ 
-██║   ██║██║╚██╗██║██║╚██╗ ██╔╝██╔══╝  ██╔══██╗╚════██║██║   ██║     ╚██╔╝  
-╚██████╔╝██║ ╚████║██║ ╚████╔╝ ███████╗██║  ██║███████║██║   ██║      ██║   
- ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═══╝  ╚══════╝╚═╝  ╚═╝╚══════╝╚═╝   ╚═╝      ╚═╝   
-███████╗██████╗ ███████╗ ██████╗██████╗  ██████╗██╗      ██████╗ ██╗   ██╗██████╗ 
+██║   ██║██╔██╗ ██║██║██║   ██║█████╗  ██████╔╝███████╗██║   ██║    ╚████╔╝
+██║   ██║██║╚██╗██║██║╚██╗ ██╔╝██╔══╝  ██╔══██╗╚════██║██║   ██║     ╚██╔╝
+╚██████╔╝██║ ╚████║██║ ╚████╔╝ ███████╗██║  ██║███████║██║   ██║      ██║
+ ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═══╝  ╚══════╝╚═╝  ╚═╝╚══════╝╚═╝   ╚═╝      ╚═╝
+███████╗██████╗ ███████╗ ██████╗██████╗  ██████╗██╗      ██████╗ ██╗   ██╗██████╗
 ██╔════╝██╔══██╗██╔════╝██╔════╝╚════██╗██╔════╝██║     ██╔═══██╗██║   ██║██╔══██╗
 ███████╗██████╔╝█████╗  ██║      █████╔╝██║     ██║     ██║   ██║██║   ██║██║  ██║
 ╚════██║██╔═══╝ ██╔══╝  ██║     ██╔═══╝ ██║     ██║     ██║   ██║██║   ██║██║  ██║
 ███████║██║     ███████╗╚██████╗███████╗╚██████╗███████╗╚██████╔╝╚██████╔╝██████╔╝
-╚══════╝╚═╝     ╚══════╝ ╚═════╝╚══════╝ ╚═════╝╚══════╝ ╚═════╝  ╚═════╝ ╚═════╝ 
+╚══════╝╚═╝     ╚══════╝ ╚═════╝╚══════╝ ╚═════╝╚══════╝ ╚═════╝  ╚═════╝ ╚═════╝
 ```
 
 <div align="center">
@@ -38,6 +38,7 @@
 
 ## 📖 Table of Contents
 
+- [🚀 Developer Onboarding](#-developer-onboarding)
 - [🎯 About This Lab](#-about-this-lab)
 - [💡 What is Spec2Cloud?](#-what-is-spec2cloud)
 - [💡 What is Spec-Driven Development?](#-what-is-spec-driven-development)
@@ -56,6 +57,21 @@
   - [Step 9 — Celebrate! 🎉](#-step-9--celebrate-)
 - [🌿 Branches & Tags](#-branches--tags)
 - [📚 Additional Resources](#-additional-resources)
+
+---
+
+## 🚀 Developer Onboarding
+
+**4 ways to set up your environment** — pick the one that works for you:
+
+| Option | Time | What You Need |
+|--------|------|---------------|
+| 🌐 [**GitHub Codespaces**](DEVELOPER_GUIDE.md#option-1-github-codespaces-recommended) | ~2 min | Just a browser |
+| 🐳 [**VS Code Dev Container**](DEVELOPER_GUIDE.md#option-2-vs-code-dev-container-local-docker) | ~5 min | Docker + VS Code |
+| 🖥️ [**Local Windows Setup**](DEVELOPER_GUIDE.md#option-3-local-windows-setup) | ~15 min | Windows + .NET SDKs |
+| ⚡ [**VS Code Manual**](DEVELOPER_GUIDE.md#option-4-vs-code-with-manual-setup) | ~10 min | VS Code + .NET SDKs |
+
+> 📖 **Full details:** [**DEVELOPER_GUIDE.md**](DEVELOPER_GUIDE.md)
 
 ---
 
@@ -156,7 +172,12 @@ ContosoUniversity/
 ```
 📦 AppModLab-dotnet-4to9-contosouniversity-spec2cloud
 ├── 📄 README.MD              # 👈 You are here!
-├── 📂 img/                   # 🖼️ Screenshots and diagrams for this guide
+├── � DEVELOPER_GUIDE.md     # 🚀 Developer onboarding (4 setup options)
+├── 📄 setup.ps1              # 🖥️ Windows setup script
+├── 📄 setup.sh               # 🐧 macOS/Linux setup script
+├── 📂 .devcontainer/         # 🐳 Codespaces & Dev Container config
+├── 📂 .vscode/               # ⚙️ VS Code workspace settings
+├── �📂 img/                   # 🖼️ Screenshots and diagrams for this guide
 └── 📂 src/
     └── 📂 ContosoUniversity/ # 🏫 The legacy application source code
 ```
@@ -185,6 +206,8 @@ Before starting this lab, make sure you have the following installed:
 | 📦 **Node.js & npm** | Required to run `npx spec2cloud` |
 | 🤖 **GitHub Copilot** | AI assistant (requires active subscription) |
 | ☁️ **Azure Subscription** *(optional)* | For deploying to Azure App Service |
+
+> 📖 **Quick Start:** See the [**Developer Onboarding Guide**](DEVELOPER_GUIDE.md) for 4 ways to set up your environment — including **GitHub Codespaces** (zero install, ~2 min) and **local Docker** options.
 
 ---
 

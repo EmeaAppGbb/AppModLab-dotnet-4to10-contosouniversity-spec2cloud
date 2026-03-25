@@ -1,0 +1,15 @@
+{
+    "editor.formatOnSave": true,
+    "files.exclude": {
+        "**/bin": true,
+        "**/obj": true,
+        "**/packages": true,
+        "**/.vs": true
+    },
+    "dotnet.defaultSolution": "src/ContosoUniversity/ContosoUniversity.sln",
+    "omnisharp.enableEditorConfigSupport": true,
+    "editor.bracketPairColorization.enabled": true,
+    "editor.guides.bracketPairs": true,
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true
+}
