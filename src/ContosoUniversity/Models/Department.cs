@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ContosoUniversity.Models
 {
-    public class Department
+    public class Department : IAuditable
     {
         public int DepartmentID { get; set; }
 
@@ -25,6 +25,11 @@ namespace ContosoUniversity.Models
 
         [Timestamp]
         public byte[] RowVersion { get; set; }
+
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? ModifiedAt { get; set; }
+        public string CreatedBy { get; set; }
+        public string ModifiedBy { get; set; }
 
         public virtual Instructor Administrator { get; set; }
         public virtual ICollection<Course> Courses { get; set; }

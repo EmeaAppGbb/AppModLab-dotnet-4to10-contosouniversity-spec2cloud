@@ -1,10 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ContosoUniversity.Models
 {
-    public class Course
+    public class Course : IAuditable
     {
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         [Display(Name = "Number")]
@@ -21,6 +22,11 @@ namespace ContosoUniversity.Models
         [Display(Name = "Teaching Material Image")]
         [StringLength(255)]
         public string TeachingMaterialImagePath { get; set; }
+
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? ModifiedAt { get; set; }
+        public string CreatedBy { get; set; }
+        public string ModifiedBy { get; set; }
 
         public virtual Department Department { get; set; }
         public virtual ICollection<Enrollment> Enrollments { get; set; }
