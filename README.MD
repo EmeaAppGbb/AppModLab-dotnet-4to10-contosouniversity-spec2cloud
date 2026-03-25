@@ -30,7 +30,7 @@
 [![.NET](https://img.shields.io/badge/.NET_4.8_→_.NET_10-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![GitHub Copilot](https://img.shields.io/badge/GitHub_Copilot-000000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/features/copilot)
 [![Azure](https://img.shields.io/badge/Azure_App_Service-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white)](https://azure.microsoft.com/)
-[![Spec2Cloud](https://img.shields.io/badge/Spec2Cloud-FF6F00?style=for-the-badge&logo=rocket&logoColor=white)](#-what-is-spec2cloud)
+[![Spec2Cloud](https://img.shields.io/badge/Spec2Cloud-FF6F00?style=for-the-badge&logo=rocket&logoColor=white)](https://github.com/EmeaAppGbb/spec2cloud)
 
 </div>
 
@@ -75,6 +75,8 @@ This is a **hands-on lab repository** designed to teach you how to modernize a l
 ---
 
 ## 💡 What is Spec2Cloud?
+
+> 📖 **Full documentation:** [Spec2Cloud on GitHub](https://github.com/EmeaAppGbb/spec2cloud) | [Brownfield Guide](https://github.com/EmeaAppGbb/spec2cloud/blob/vNext/docs/brownfield.md)
 
 **Spec2Cloud** is a framework that bridges the gap between **application specifications** and **cloud-ready implementations**. It uses AI-powered agents and GitHub Copilot skills to:
 
@@ -203,6 +205,8 @@ npx spec2cloud init
 ![Spec2Cloud Init](img/shell-install.png)
 
 You will be prompted to select the setup scope. Choose **🏗️ Brownfield** since we are modernizing an existing application.
+
+> 📖 **Need more details?** Check out the full [Spec2Cloud Brownfield Documentation](https://github.com/EmeaAppGbb/spec2cloud/blob/vNext/docs/brownfield.md) for an in-depth guide on brownfield modernization scenarios.
 
 > ℹ️ **What happens here?** Spec2Cloud scaffolds the necessary configuration files and Copilot skills into your repository, preparing it for the spec-driven modernization workflow.
 
@@ -349,7 +353,8 @@ Copilot will present you with **multiple authentication modernization approaches
 
 | Resource | Link |
 |----------|------|
-| 📘 Spec2Cloud Documentation | *Coming soon* |
+| 📘 Spec2Cloud Repository | [github.com/EmeaAppGbb/spec2cloud](https://github.com/EmeaAppGbb/spec2cloud) |
+| 📗 Spec2Cloud Brownfield Guide | [Brownfield Modernization Docs](https://github.com/EmeaAppGbb/spec2cloud/blob/vNext/docs/brownfield.md) |
 | 🤖 GitHub Copilot Docs | [docs.github.com/copilot](https://docs.github.com/copilot) |
 | 🟣 .NET Upgrade Guide | [learn.microsoft.com](https://learn.microsoft.com/en-us/dotnet/core/porting/) |
 | ☁️ Azure App Service Docs | [learn.microsoft.com](https://learn.microsoft.com/en-us/azure/app-service/) |
