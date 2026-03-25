@@ -1,0 +1,39 @@
+{
+  "mode": "brownfield",
+  "phase": "brownfield",
+  "step": "frd-generation",
+  "status": "awaiting-approval",
+  "testability": null,
+  "featureTracks": {},
+  "artifacts": {
+    "assessment": {
+      "path": "specs/assessment/modernization.md",
+      "findings": 28,
+      "critical": 6,
+      "high": 7,
+      "generated_at": "2026-03-25T09:25:00Z"
+    },
+    "adrs": [
+      { "id": "ADR-001", "path": "specs/adrs/adr-001-migrate-to-dotnet-10.md", "title": "Migrate from .NET Framework 4.8 to .NET 10", "status": "proposed" },
+      { "id": "ADR-002", "path": "specs/adrs/adr-002-authentication-strategy.md", "title": "Authentication and Authorization Strategy", "status": "proposed" },
+      { "id": "ADR-003", "path": "specs/adrs/adr-003-replace-msmq-messaging.md", "title": "Replace MSMQ with Modern Messaging", "status": "proposed" }
+    ],
+    "prd": {
+      "path": "specs/prd.md",
+      "features_count": 8,
+      "personas_count": 2,
+      "generated_at": "2026-03-25T09:35:00Z"
+    },
+    "frds": [
+      { "feature_id": "F-001", "path": "specs/frd-student-management.md", "user_stories_count": 7, "requirements_count": 7, "test_coverage": "0%", "known_limitations": 7 },
+      { "feature_id": "F-002", "path": "specs/frd-course-management.md", "user_stories_count": 5, "requirements_count": 6, "test_coverage": "0%", "known_limitations": 7 },
+      { "feature_id": "F-003", "path": "specs/frd-instructor-management.md", "user_stories_count": 5, "requirements_count": 5, "test_coverage": "0%", "known_limitations": 6 },
+      { "feature_id": "F-004", "path": "specs/frd-department-management.md", "user_stories_count": 5, "requirements_count": 4, "test_coverage": "0%", "known_limitations": 5 },
+      { "feature_id": "F-005", "path": "specs/frd-notification-system.md", "user_stories_count": 3, "requirements_count": 4, "test_coverage": "0%", "known_limitations": 9 },
+      { "feature_id": "F-006", "path": "specs/frd-enrollment-statistics.md", "user_stories_count": 1, "requirements_count": 1, "test_coverage": "0%", "known_limitations": 5 },
+      { "feature_id": "F-007", "path": "specs/frd-contact-information.md", "user_stories_count": 1, "requirements_count": 1, "test_coverage": "0%", "known_limitations": 2 },
+      { "feature_id": "F-008", "path": "specs/frd-error-handling.md", "user_stories_count": 2, "requirements_count": 3, "test_coverage": "0%", "known_limitations": 6 }
+    ]
+  },
+  "updated_at": "2026-03-25T09:42:00Z"
+}
