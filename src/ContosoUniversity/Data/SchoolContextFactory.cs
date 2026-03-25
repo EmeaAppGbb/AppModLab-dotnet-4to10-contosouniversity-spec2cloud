@@ -1,17 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using System.Configuration;
-
-namespace ContosoUniversity.Data
-{
-    public static class SchoolContextFactory
-    {
-        public static SchoolContext Create()
-        {
-            var connectionString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
-            var optionsBuilder = new DbContextOptionsBuilder<SchoolContext>();
-            optionsBuilder.UseSqlServer(connectionString);
-            
-            return new SchoolContext(optionsBuilder.Options);
-        }
-    }
-}
+// This file previously contained SchoolContextFactory for manual DbContext creation.
+// It has been replaced by ASP.NET Core dependency injection in Program.cs.
+// This file is kept for git history reference and will be removed in a future cleanup.
