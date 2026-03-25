@@ -1,10 +1,26 @@
 {
   "mode": "brownfield",
-  "phase": "brownfield",
-  "step": "frd-generation",
+  "phase": "planning",
+  "step": "modernization-planning",
   "status": "awaiting-approval",
   "testability": null,
   "featureTracks": {},
+  "incrementPlan": [
+    { "id": "mod-001", "type": "modernization", "title": "Migrate to .NET 10 + ASP.NET Core MVC + EF Core 9", "status": "planned", "risk": "medium", "findings": ["A-1","D-1","P-1","A-2","D-2","P-2","CI-3","S-4"] },
+    { "id": "mod-002", "type": "modernization", "title": "Replace MSMQ with Database + SignalR", "status": "planned", "risk": "low", "findings": ["A-3"] },
+    { "id": "mod-003", "type": "modernization", "title": "Implement Structured Logging", "status": "planned", "risk": "low", "findings": ["P-4"] },
+    { "id": "mod-004", "type": "modernization", "title": "Convert All I/O to Async/Await", "status": "planned", "risk": "low", "findings": ["A-4"] },
+    { "id": "mod-005", "type": "modernization", "title": "Security Hardening — XSS + Environment", "status": "planned", "risk": "low", "findings": ["S-2","S-3"] },
+    { "id": "mod-006", "type": "modernization", "title": "Add Authentication and Authorization", "status": "blocked", "blocked_on": "ADR-002", "risk": "medium", "findings": ["S-1"] },
+    { "id": "mod-007", "type": "modernization", "title": "Refactor Controller Patterns and Validation", "status": "planned", "risk": "low", "findings": ["P-5","P-6","P-7","P-8"] },
+    { "id": "mod-008", "type": "modernization", "title": "Optimize Data Access Patterns", "status": "planned", "risk": "low", "findings": ["P-3"] },
+    { "id": "mod-009", "type": "modernization", "title": "Add Unit and Integration Test Project", "status": "planned", "risk": "low", "findings": ["T-1","T-2","T-3"] },
+    { "id": "mod-010", "type": "modernization", "title": "Add CI/CD Pipeline", "status": "planned", "risk": "low", "findings": ["CI-1"] },
+    { "id": "mod-011", "type": "modernization", "title": "Add Dockerfile and Container Support", "status": "planned", "risk": "low", "findings": ["CI-2"] },
+    { "id": "mod-012", "type": "modernization", "title": "Remove Dead Frontend Dependencies", "status": "planned", "risk": "low", "findings": ["D-4","D-5","D-6"] },
+    { "id": "mod-013", "type": "modernization", "title": "Strongly Type All Views and View Models", "status": "planned", "risk": "low", "findings": ["P-9"] },
+    { "id": "mod-014", "type": "modernization", "title": "Add Entity Audit Trail", "status": "planned", "risk": "low", "findings": ["A-6"] }
+  ],
   "artifacts": {
     "assessment": {
       "path": "specs/assessment/modernization.md",
@@ -35,5 +51,5 @@
       { "feature_id": "F-008", "path": "specs/frd-error-handling.md", "user_stories_count": 2, "requirements_count": 3, "test_coverage": "0%", "known_limitations": 6 }
     ]
   },
-  "updated_at": "2026-03-25T09:42:00Z"
+  "updated_at": "2026-03-25T10:02:00Z"
 }
