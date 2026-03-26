@@ -76,6 +76,7 @@
             <th>Number</th>
             <th>Title</th>
             <th>Department</th>
+            <th>Grades</th>
         </tr>
 
         @foreach (var item in Model.Courses)
@@ -97,6 +98,9 @@
                 </td>
                 <td>
                     @item.Department.Name
+                </td>
+                <td>
+                    <a asp-controller="Courses" asp-action="Grades" asp-route-id="@item.CourseID" class="btn btn-success btn-sm">Manage Grades</a>
                 </td>
             </tr>
         }

@@ -1,0 +1,86 @@
+@model ContosoUniversity.Models.ViewModels.GradeManagementViewModel
+
+@{
+    ViewBag.Title = "Manage Grades - " + Model.CourseTitle;
+}
+
+<h2>Manage Grades</h2>
+<h4>@Model.CourseID: @Model.CourseTitle</h4>
+
+@if (ViewBag.SuccessMessage != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @ViewBag.SuccessMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (Model.Enrollments.Count == 0)
+{
+    <div class="alert alert-info">No students enrolled in this course.</div>
+}
+else
+{
+    <form asp-action="SaveGrades" asp-route-id="@Model.CourseID" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="CourseID" />
+        <input type="hidden" asp-for="CourseTitle" />
+
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Student Name</th>
+                    <th>Enrollment Date</th>
+                    <th style="width: 200px;">Grade</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < Model.Enrollments.Count; i++)
+                {
+                    <tr>
+                        <td>
+                            @Model.Enrollments[i].StudentName
+                            <input type="hidden" name="Enrollments[@i].EnrollmentID" value="@Model.Enrollments[i].EnrollmentID" />
+                            <input type="hidden" name="Enrollments[@i].StudentName" value="@Model.Enrollments[i].StudentName" />
+                            <input type="hidden" name="Enrollments[@i].EnrollmentDate" value="@Model.Enrollments[i].EnrollmentDate.ToString("yyyy-MM-dd")" />
+                        </td>
+                        <td>
+                            @Model.Enrollments[i].EnrollmentDate.ToString("yyyy-MM-dd")
+                        </td>
+                        <td>
+                            @{
+                                var currentGrade = Model.Enrollments[i].Grade;
+                            }
+                            <select name="Enrollments[@i].Grade" class="form-select form-select-sm">
+                                <option value="" selected="@(currentGrade == null)">No grade</option>
+                                @foreach (var g in Enum.GetValues<ContosoUniversity.Models.Grade>())
+                                {
+                                    <option value="@g" selected="@(currentGrade == g)">@g</option>
+                                }
+                            </select>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="mt-3">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i> Save All Grades
+            </button>
+            <a asp-action="Details" asp-route-id="@Model.CourseID" class="btn btn-secondary ms-2">Back to Course</a>
+        </div>
+    </form>
+}
+
+<div class="mt-3">
+    <a asp-controller="Courses" asp-action="Index" class="btn btn-outline-secondary">Back to Courses</a>
+</div>

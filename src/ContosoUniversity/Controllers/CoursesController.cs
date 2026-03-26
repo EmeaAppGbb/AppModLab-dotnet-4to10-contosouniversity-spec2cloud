@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
@@ -10,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using System.IO;
 using ContosoUniversity.Data;
 using ContosoUniversity.Models;
+using ContosoUniversity.Models.ViewModels;
 using ContosoUniversity.Services;
 
 namespace ContosoUniversity.Controllers
@@ -243,6 +245,102 @@ namespace ContosoUniversity.Controllers
             await SendEntityNotificationAsync("Course", id.ToString(), courseTitle, EntityOperation.DELETE);
 
             return RedirectToAction("Index");
+        }
+
+        // GET: Courses/Grades/5
+        public async Task<IActionResult> Grades(int? id)
+        {
+            if (id == null)
+            {
+                return BadRequest();
+            }
+
+            var course = await db.Courses.FindAsync(id);
+            if (course == null)
+            {
+                return NotFound();
+            }
+
+            var enrollments = await db.Enrollments
+                .Include(e => e.Student)
+                .Where(e => e.CourseID == id)
+                .OrderBy(e => e.Student.LastName)
+                .ToListAsync();
+
+            var viewModel = new GradeManagementViewModel
+            {
+                CourseID = course.CourseID,
+                CourseTitle = course.Title,
+                Enrollments = enrollments.Select(e => new EnrollmentGradeItem
+                {
+                    EnrollmentID = e.EnrollmentID,
+                    StudentName = e.Student.FullName,
+                    EnrollmentDate = e.Student.EnrollmentDate,
+                    Grade = e.Grade
+                }).ToList()
+            };
+
+            if (TempData["SuccessMessage"] != null)
+            {
+                ViewBag.SuccessMessage = TempData["SuccessMessage"];
+            }
+
+            return View(viewModel);
+        }
+
+        // POST: Courses/SaveGrades/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SaveGrades(int id, GradeManagementViewModel model)
+        {
+            var course = await db.Courses.FindAsync(id);
+            if (course == null)
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                int updatedCount = 0;
+
+                foreach (var item in model.Enrollments)
+                {
+                    var enrollment = await db.Enrollments
+                        .Include(e => e.Student)
+                        .Include(e => e.Course)
+                        .Where(e => e.EnrollmentID == item.EnrollmentID)
+                        .SingleOrDefaultAsync();
+
+                    if (enrollment != null && enrollment.Grade != item.Grade)
+                    {
+                        enrollment.Grade = item.Grade;
+                        updatedCount++;
+
+                        var studentName = enrollment.Student?.FullName ?? "Unknown";
+                        await SendEntityNotificationAsync("Enrollment",
+                            enrollment.EnrollmentID.ToString(),
+                            $"{studentName} in {course.Title}",
+                            EntityOperation.UPDATE);
+                    }
+                }
+
+                if (updatedCount > 0)
+                {
+                    await db.SaveChangesAsync();
+                    TempData["SuccessMessage"] = $"{updatedCount} grade(s) updated successfully.";
+                }
+                else
+                {
+                    TempData["SuccessMessage"] = "No grade changes detected.";
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving grades for course {CourseId}", id);
+                TempData["ErrorMessage"] = "Unable to save grades. Please try again.";
+            }
+
+            return RedirectToAction("Grades", new { id });
         }
     }
 }
