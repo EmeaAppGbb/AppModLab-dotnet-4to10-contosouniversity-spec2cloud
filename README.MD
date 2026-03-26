@@ -54,7 +54,11 @@
   - [Step 6 — Review & Approve the Plan](#-step-6--review--approve-the-plan)
   - [Step 7 — Execute the Modernization](#-step-7--execute-the-modernization)
   - [Step 8 — Handle Authentication Decisions](#-step-8--handle-authentication-decisions)
-  - [Step 9 — Celebrate! 🎉](#-step-9--celebrate-)
+  - [Step 9 — Modernization Complete! 🎉](#-step-9--modernization-complete-)
+  - [Step 10 — Document Architecture](#-step-10--document-architecture)
+  - [Step 11 — Generate Tests](#-step-11--generate-tests)
+  - [Step 12 — CVEs & Security Analysis](#-step-12--cves--security-analysis)
+  - [Step 13 — Evolve with a New Feature](#-step-13--evolve-with-a-new-feature)
 - [🌿 Branches & Tags](#-branches--tags)
 - [📚 Additional Resources](#-additional-resources)
 
@@ -345,8 +349,7 @@ Copilot will present you with **multiple authentication modernization approaches
 
 ---
 
-### 📌 Step 9 — Celebrate! 🎉
-
+### 📌 Step 9 — Modernization Complete! 🎉
 
 ![Modernization Complete](img/copilot-step2-modernize-finished.png)
 
@@ -358,6 +361,100 @@ Copilot will present you with **multiple authentication modernization approaches
 | ☁️ **Cloud-Ready** | Configured for Azure App Service deployment |
 | 📚 **Full Documentation** | Detailed record of every change and decision |
 | 🔍 **Traceability** | Every change mapped back to original specifications |
+
+> 🚀 **But we're not done yet!** The following steps demonstrate how Spec2Cloud goes beyond modernization — helping you document, test, secure, and evolve your application.
+
+---
+
+### 📌 Step 10 — Document Architecture
+
+🏛️ Continue to explore the power of Spec2Cloud by asking Copilot to generate architecture documentation for the modernized application. Leverage the **Architecture Mapper** skill to document your new version of the application:
+
+```
+/architecture-mapper based on the modernized code document all the architecture component
+```
+
+![Architecture Documentation](/img/copilot-step3-spec-architecture.png)
+
+🎁 **What you get:** A detailed architecture documentation for your modernized application, including diagrams and component descriptions. This documentation will be invaluable for onboarding new team members and maintaining the application in the future.
+
+---
+
+### 📌 Step 11 — Generate Tests
+
+🧪 Use the **Test Generation** skill to automatically create a comprehensive test suite for your modernized application:
+
+```
+/test-generation based on this new application generate all the tests for this application
+```
+
+![Test Generation](/img/copilot-step5-test.png)
+
+> ✅ **What you get:** A full set of unit and integration tests aligned with your application's specifications, ensuring your modernized code is robust and regression-proof.
+
+---
+
+### 📌 Step 12 — CVEs & Security Analysis
+
+🔐 Use the **Security Assessment** skill to perform a full audit for security vulnerabilities and CVEs on your modernized application:
+
+```
+/security-assessment with this new modernized application perform a audit for security vulnerabilities and CVEs
+```
+
+![Security Assessment](/img/copilot-step6-sec-assess.png)
+
+Next, plan the remediation of the identified security issues with the **Security Planner** skill:
+
+```
+/security-planner
+```
+
+![Security Planner](/img/copilot-step6-sec-plan.png)
+
+Finally, execute the security remediation plan:
+
+```
+implement the security remediation plan
+```
+
+![Security Plan Implemented](/img/copilot-step6-sec-implement.png)
+
+> 🛡️ **What you get:** A security-hardened application with identified CVEs remediated and documented.
+
+---
+
+### 📌 Step 13 — Evolve with a New Feature
+
+🌱 Now that you have a modernized application, you can continue to evolve it using the **Spec-Driven Development** approach. Specify a new feature in the specifications and ask Copilot to implement it — ensuring your application continues to meet evolving user needs while maintaining a clear link between specifications and implementation.
+
+Try it out for yourself! For example, you could specify a new feature like **"Grade Management — Let instructors enter/edit grades on enrollments"** or another feature of your choice.
+
+**1️⃣ Add the new requirement to the specifications:**
+
+```
+Add the following requirement to the specifications: "Grade Management — Let instructors enter/edit grades on enrollments."
+```
+
+Review the updated specifications to ensure that the new requirement has been properly incorporated.
+
+![New Feature Plan](/img/copilot-step4-spec-newfeature-plan.png)
+
+**2️⃣ Implement the new feature based on the updated specifications:**
+
+```
+Implement the new grade management functionality for the student management page based on the updated specifications.
+```
+
+![Implement New Feature](/img/copilot-step4-spec-newfeature-implement.png)
+
+> 🎁 **What you get:** Copilot generates the necessary code changes to implement the grade management functionality, ensuring it aligns with the specifications and integrates seamlessly with the existing application.
+
+---
+
+### 🏆 Celebrate Your Modernized Application! 🎉
+
+🥳 You have successfully modernized the Contoso University application from .NET Framework 4.8 to .NET 10 using Spec2Cloud and GitHub Copilot! Your application is now running on a modern tech stack — documented, tested, secured, and ready for future enhancements and cloud deployment.
 
 ```
   🎓 Before                          🎓 After
