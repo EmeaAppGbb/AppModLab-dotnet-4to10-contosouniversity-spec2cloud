@@ -97,11 +97,28 @@
             var createdBy = notification.CreatedBy || notification.createdBy;
             var entityType = notification.EntityType || notification.entityType;
 
-            notificationEl.innerHTML = 
-                '<button class="notification-close" onclick="NotificationSystem.closeNotification(this)">&times;</button>' +
-                '<div class="notification-title">' + operation + ' - ' + entityType + '</div>' +
-                '<div class="notification-message">' + message + '</div>' +
-                '<div class="notification-time">By ' + createdBy + ' • ' + timeAgo + '</div>';
+            notificationEl.innerHTML = '';
+
+            var closeBtn = document.createElement('button');
+            closeBtn.className = 'notification-close';
+            closeBtn.textContent = '\u00D7';
+            closeBtn.onclick = function() { NotificationSystem.closeNotification(closeBtn); };
+            notificationEl.appendChild(closeBtn);
+
+            var titleDiv = document.createElement('div');
+            titleDiv.className = 'notification-title';
+            titleDiv.textContent = operation + ' - ' + entityType;
+            notificationEl.appendChild(titleDiv);
+
+            var messageDiv = document.createElement('div');
+            messageDiv.className = 'notification-message';
+            messageDiv.textContent = message;
+            notificationEl.appendChild(messageDiv);
+
+            var timeDiv = document.createElement('div');
+            timeDiv.className = 'notification-time';
+            timeDiv.textContent = 'By ' + createdBy + ' \u2022 ' + timeAgo;
+            notificationEl.appendChild(timeDiv);
             
             // Add to container
             this.container.appendChild(notificationEl);

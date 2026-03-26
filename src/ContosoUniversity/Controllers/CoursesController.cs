@@ -14,6 +14,8 @@ using ContosoUniversity.Models;
 using ContosoUniversity.Models.ViewModels;
 using ContosoUniversity.Services;
 
+using Microsoft.AspNetCore.Authorization;
+
 namespace ContosoUniversity.Controllers
 {
     public class CoursesController : BaseController
@@ -79,6 +81,31 @@ namespace ContosoUniversity.Controllers
                         return View(course);
                     }
 
+                    var allowedMimeTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/bmp" };
+                    if (!allowedMimeTypes.Contains(teachingMaterialImage.ContentType.ToLower()))
+                    {
+                        ModelState.AddModelError("teachingMaterialImage", "Invalid file type. Please upload a valid image.");
+                        ViewBag.DepartmentID = new SelectList(db.Departments, "DepartmentID", "Name", course.DepartmentID);
+                        return View(course);
+                    }
+
+                    using (var reader = new BinaryReader(teachingMaterialImage.OpenReadStream()))
+                    {
+                        var headerBytes = reader.ReadBytes(4);
+                        bool validSignature =
+                            (headerBytes.Length >= 2 && headerBytes[0] == 0xFF && headerBytes[1] == 0xD8) ||
+                            (headerBytes.Length >= 4 && headerBytes[0] == 0x89 && headerBytes[1] == 0x50 && headerBytes[2] == 0x4E && headerBytes[3] == 0x47) ||
+                            (headerBytes.Length >= 3 && headerBytes[0] == 0x47 && headerBytes[1] == 0x49 && headerBytes[2] == 0x46) ||
+                            (headerBytes.Length >= 2 && headerBytes[0] == 0x42 && headerBytes[1] == 0x4D);
+
+                        if (!validSignature)
+                        {
+                            ModelState.AddModelError("teachingMaterialImage", "File content does not match a valid image format.");
+                            ViewBag.DepartmentID = new SelectList(db.Departments, "DepartmentID", "Name", course.DepartmentID);
+                            return View(course);
+                        }
+                    }
+
                     try
                     {
                         var uploadsPath = Path.Combine(_env.WebRootPath, "Uploads", "TeachingMaterials");
@@ -98,7 +125,8 @@ namespace ContosoUniversity.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("teachingMaterialImage", "Error uploading file: " + ex.Message);
+                        _logger.LogError(ex, "Error uploading file for course {CourseId}", course.CourseID);
+                        ModelState.AddModelError("teachingMaterialImage", "An error occurred while uploading the file. Please try again.");
                         ViewBag.DepartmentID = new SelectList(db.Departments, "DepartmentID", "Name", course.DepartmentID);
                         return View(course);
                     }
@@ -156,6 +184,31 @@ namespace ContosoUniversity.Controllers
                         return View(course);
                     }
 
+                    var allowedMimeTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/bmp" };
+                    if (!allowedMimeTypes.Contains(teachingMaterialImage.ContentType.ToLower()))
+                    {
+                        ModelState.AddModelError("teachingMaterialImage", "Invalid file type. Please upload a valid image.");
+                        ViewBag.DepartmentID = new SelectList(db.Departments, "DepartmentID", "Name", course.DepartmentID);
+                        return View(course);
+                    }
+
+                    using (var reader = new BinaryReader(teachingMaterialImage.OpenReadStream()))
+                    {
+                        var headerBytes = reader.ReadBytes(4);
+                        bool validSignature =
+                            (headerBytes.Length >= 2 && headerBytes[0] == 0xFF && headerBytes[1] == 0xD8) ||
+                            (headerBytes.Length >= 4 && headerBytes[0] == 0x89 && headerBytes[1] == 0x50 && headerBytes[2] == 0x4E && headerBytes[3] == 0x47) ||
+                            (headerBytes.Length >= 3 && headerBytes[0] == 0x47 && headerBytes[1] == 0x49 && headerBytes[2] == 0x46) ||
+                            (headerBytes.Length >= 2 && headerBytes[0] == 0x42 && headerBytes[1] == 0x4D);
+
+                        if (!validSignature)
+                        {
+                            ModelState.AddModelError("teachingMaterialImage", "File content does not match a valid image format.");
+                            ViewBag.DepartmentID = new SelectList(db.Departments, "DepartmentID", "Name", course.DepartmentID);
+                            return View(course);
+                        }
+                    }
+
                     try
                     {
                         var uploadsPath = Path.Combine(_env.WebRootPath, "Uploads", "TeachingMaterials");
@@ -185,7 +238,8 @@ namespace ContosoUniversity.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("teachingMaterialImage", "Error uploading file: " + ex.Message);
+                        _logger.LogError(ex, "Error uploading file for course {CourseId}", course.CourseID);
+                        ModelState.AddModelError("teachingMaterialImage", "An error occurred while uploading the file. Please try again.");
                         ViewBag.DepartmentID = new SelectList(db.Departments, "DepartmentID", "Name", course.DepartmentID);
                         return View(course);
                     }
@@ -248,6 +302,7 @@ namespace ContosoUniversity.Controllers
         }
 
         // GET: Courses/Grades/5
+        [Authorize(Roles = "Admin,Faculty")]
         public async Task<IActionResult> Grades(int? id)
         {
             if (id == null)
@@ -291,6 +346,7 @@ namespace ContosoUniversity.Controllers
         // POST: Courses/SaveGrades/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Faculty")]
         public async Task<IActionResult> SaveGrades(int id, GradeManagementViewModel model)
         {
             var course = await db.Courses.FindAsync(id);

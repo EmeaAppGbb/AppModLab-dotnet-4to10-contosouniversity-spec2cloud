@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace ContosoUniversity.Data
 {
     public static class IdentitySeeder
     {
-        public static async Task SeedAsync(IServiceProvider serviceProvider)
+        public static async Task SeedAsync(IServiceProvider serviceProvider, IConfiguration configuration)
         {
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();
@@ -18,6 +20,17 @@ namespace ContosoUniversity.Data
                 }
             }
 
+            var adminPassword = configuration["Identity:AdminPassword"]
+                ?? Environment.GetEnvironmentVariable("ADMIN_PASSWORD")
+                ?? null;
+
+            if (adminPassword == null)
+            {
+                var logger = serviceProvider.GetService<ILogger<IdentityUser>>();
+                logger?.LogWarning("Admin password not configured. Skipping admin user seeding. Set Identity:AdminPassword in appsettings or ADMIN_PASSWORD environment variable.");
+                return;
+            }
+
             var adminEmail = "admin@contoso.edu";
             var adminUser = await userManager.FindByEmailAsync(adminEmail);
             if (adminUser == null)
@@ -28,7 +41,7 @@ namespace ContosoUniversity.Data
                     Email = adminEmail,
                     EmailConfirmed = true
                 };
-                await userManager.CreateAsync(adminUser, "Admin123!");
+                await userManager.CreateAsync(adminUser, adminPassword);
                 await userManager.AddToRoleAsync(adminUser, "Admin");
             }
         }

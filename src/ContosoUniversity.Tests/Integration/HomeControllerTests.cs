@@ -21,7 +21,6 @@ namespace ContosoUniversity.Tests.Integration
 
         [Theory]
         [InlineData("/")]
-        [InlineData("/Home/About")]
         [InlineData("/Home/Contact")]
         public async Task PublicPages_ReturnSuccess(string url)
         {
@@ -40,6 +39,7 @@ namespace ContosoUniversity.Tests.Integration
         [InlineData("/Courses")]
         [InlineData("/Instructors")]
         [InlineData("/Departments")]
+        [InlineData("/Home/About")]
         public async Task ProtectedPages_RedirectToLogin(string url)
         {
             var client = _factory.CreateClient(new WebApplicationFactoryClientOptions

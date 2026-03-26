@@ -10,7 +10,6 @@ using ContosoUniversity.Services;
 
 namespace ContosoUniversity.Controllers
 {
-    [AllowAnonymous]
     public class HomeController : BaseController
     {
         private readonly ILogger<HomeController> _logger;
@@ -21,6 +20,7 @@ namespace ContosoUniversity.Controllers
             _logger = logger;
         }
 
+        [AllowAnonymous]
         public IActionResult Index()
         {
             return View();
@@ -39,17 +39,20 @@ namespace ContosoUniversity.Controllers
             return View(await data.ToListAsync());
         }
 
+        [AllowAnonymous]
         public IActionResult Contact()
         {
             ViewBag.Message = "Your contact page.";
             return View();
         }
 
+        [AllowAnonymous]
         public IActionResult Error()
         {
             return View();
         }
 
+        [AllowAnonymous]
         public new IActionResult Unauthorized()
         {
             ViewBag.Message = "You don't have permission to access this resource.";

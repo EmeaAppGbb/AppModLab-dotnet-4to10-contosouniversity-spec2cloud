@@ -40,5 +40,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <script src="~/Scripts/notifications.js"></script>
     @await RenderSectionAsync("scripts", required: false)
+    @Html.AntiForgeryToken()
 </body>
 </html>

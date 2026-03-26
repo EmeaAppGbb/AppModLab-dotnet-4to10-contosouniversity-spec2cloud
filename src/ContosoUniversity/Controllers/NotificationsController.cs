@@ -23,7 +23,6 @@ namespace ContosoUniversity.Controllers
         }
 
         [HttpGet]
-        [AllowAnonymous]
         public async Task<JsonResult> GetNotifications()
         {
             var notifications = new List<Notification>();
@@ -52,6 +51,7 @@ namespace ContosoUniversity.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<JsonResult> MarkAsRead(int id)
         {
             try

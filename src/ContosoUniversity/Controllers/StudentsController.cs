@@ -34,6 +34,11 @@ namespace ContosoUniversity.Controllers
 
             var students = from s in db.Students select s;
 
+            if (!String.IsNullOrEmpty(searchString) && searchString.Length > 100)
+            {
+                searchString = searchString.Substring(0, 100);
+            }
+
             if (!String.IsNullOrEmpty(searchString))
             {
                 students = students.Where(s => s.LastName.Contains(searchString)

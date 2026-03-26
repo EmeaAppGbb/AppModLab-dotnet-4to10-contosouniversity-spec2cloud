@@ -7,7 +7,7 @@ services:
       - "5100:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=db;Database=ContosoUniversity;User=sa;Password=YourStr0ng!Pass;TrustServerCertificate=True
+      - ConnectionStrings__DefaultConnection=Server=db;Database=ContosoUniversity;User=sa;Password=${DB_PASSWORD};TrustServerCertificate=True
     depends_on:
       - db
 
@@ -15,7 +15,7 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       - ACCEPT_EULA=Y
-      - SA_PASSWORD=YourStr0ng!Pass
+      - SA_PASSWORD=${DB_PASSWORD}
     ports:
       - "1433:1433"
     volumes:
