@@ -21,6 +21,18 @@
     { "id": "mod-013", "type": "modernization", "title": "Strongly Type All Views and View Models", "status": "complete", "risk": "low", "findings": ["P-9"] },
     { "id": "mod-014", "type": "modernization", "title": "Add Entity Audit Trail", "status": "complete", "risk": "low", "findings": ["A-6"] }
   ],
+  "securityPlan": [
+    { "id": "sec-001", "type": "security", "tier": 1, "title": "Remove Hardcoded Credentials", "status": "planned", "findings": ["S-01","S-02"] },
+    { "id": "sec-002", "type": "security", "tier": 1, "title": "Remove Anonymous Notification Access", "status": "planned", "findings": ["S-05"] },
+    { "id": "sec-003", "type": "security", "tier": 2, "title": "Fix Grade Management IDOR", "status": "planned", "findings": ["S-06"] },
+    { "id": "sec-004", "type": "security", "tier": 2, "title": "Add CSRF to MarkAsRead", "status": "planned", "findings": ["S-04"] },
+    { "id": "sec-005", "type": "security", "tier": 2, "title": "Strengthen Password Policy", "status": "planned", "findings": ["S-03"] },
+    { "id": "sec-006", "type": "security", "tier": 2, "title": "Fix DOM XSS in Notifications", "status": "planned", "findings": ["S-07"] },
+    { "id": "sec-007", "type": "security", "tier": 3, "title": "Code-Level Hardening", "status": "planned", "findings": ["S-08","S-09","S-11"] },
+    { "id": "sec-008", "type": "security", "tier": 3, "title": "Security Headers + Cookie Config", "status": "planned", "findings": ["S-10","S-12"] },
+    { "id": "sec-009", "type": "security", "tier": 3, "title": "File Upload Content Validation", "status": "planned", "findings": ["S-13"] },
+    { "id": "sec-010", "type": "security", "tier": 4, "title": "Rate Limiting + Defense-in-Depth", "status": "planned", "findings": ["S-14","S-15","S-16"] }
+  ],
   "artifacts": {
     "assessment": {
       "path": "specs/assessment/modernization.md",
@@ -51,5 +63,5 @@
       { "feature_id": "F-008", "path": "specs/frd-error-handling.md", "user_stories_count": 2, "requirements_count": 3, "test_coverage": "0%", "known_limitations": 6 }
     ]
   },
-  "updated_at": "2026-03-25T11:55:00Z"
+  "updated_at": "2026-03-26T08:47:00Z"
 }

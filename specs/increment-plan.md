@@ -526,3 +526,377 @@ All 28 assessment findings are addressed:
 | P-9 | Low | mod-013 |
 | A-6 | Low | mod-014 |
 | S-4 | Low | mod-001 |
+
+---
+
+# Increment Plan — Security Remediation
+
+> Generated from `specs/assessment/security.md` (16 findings).
+> Appended to existing modernization increment plan.
+> Strict tier ordering: Tier 1 → Tier 2 → Tier 3 → Tier 4.
+
+## Security Dependency Graph
+
+```
+Tier 1 (Immediate):
+  sec-001 (Hardcoded secrets)          — no deps
+  sec-002 (Anonymous notification access) — no deps
+
+Tier 2 (High):
+  sec-003 (IDOR grades)                — no deps
+  sec-004 (Missing CSRF)               — no deps
+  sec-005 (Weak password policy)       — no deps
+  sec-006 (DOM XSS)                    — no deps
+
+Tier 3 (Medium):
+  sec-007 (Exception disclosure + Html.Raw + AllowAnonymous scope)  — no deps
+  sec-008 (CSP headers + Cookie security)                           — no deps
+  sec-009 (File upload content validation)                          — no deps
+
+Tier 4 (Low):
+  sec-010 (Rate limiting + Input length + AJAX anti-forgery)        — no deps
+```
+
+---
+
+## Tier 1 — Critical (Immediate)
+
+---
+
+## sec-001: Remove Hardcoded Credentials from Source Code
+
+- **Type:** security
+- **Tier:** 1 (Critical)
+- **Vulnerability:** Hardcoded SQL Server SA password and admin user password in version-controlled files (findings S-01, S-02)
+- **OWASP:** A07:2021 — Identification and Authentication Failures
+- **Scope:**
+  - `docker-compose.yml` — Replace hardcoded `SA_PASSWORD` and connection string with `${DB_PASSWORD}` environment variable substitution
+  - Create `.env.example` with placeholder values; create `.env` with actual values; add `.env` to `.gitignore`
+  - `Data/IdentitySeeder.cs` — Read admin password from `IConfiguration["Identity:AdminPassword"]` instead of hardcoded string; skip seeding if config not present
+  - `Program.cs` — Pass `IConfiguration` to `IdentitySeeder.SeedAsync()`
+  - No other changes.
+- **Acceptance Criteria:**
+  - [ ] No passwords or secrets appear in any tracked source file
+  - [ ] `docker-compose.yml` references `${DB_PASSWORD}` variable (not literal password)
+  - [ ] `.env` file exists but is gitignored
+  - [ ] `.env.example` committed with placeholder values
+  - [ ] `IdentitySeeder` reads admin password from configuration
+  - [ ] Application starts correctly when `.env` file provides required values
+  - [ ] Application logs a warning (not crash) when admin password config is missing
+- **Test Strategy:**
+  - Verify: `git grep -i password -- ':!*.md' ':!*.example'` returns no results
+  - Integration test: app starts with valid config
+  - Integration test: IdentitySeeder skips gracefully when password config missing
+  - Regression: all 65 existing tests pass
+- **Behavioral Deltas:**
+  - New: Application requires `Identity:AdminPassword` config or env var for admin seeding
+  - Modified: docker-compose requires `.env` file to start
+  - Regression: All CRUD operations, auth flows, notifications unchanged
+- **Dependencies:** none
+- **Rollback Plan:** Revert docker-compose.yml and IdentitySeeder.cs; restore hardcoded values
+- **Risk:** Low — Configuration plumbing only. No business logic changes.
+
+---
+
+## sec-002: Remove Anonymous Access to Notifications Endpoint
+
+- **Type:** security
+- **Tier:** 1 (Critical — authentication bypass)
+- **Vulnerability:** `[AllowAnonymous]` on `GetNotifications()` exposes all unread notification data to unauthenticated users (finding S-05)
+- **OWASP:** A01:2021 — Broken Access Control
+- **Scope:**
+  - `Controllers/NotificationsController.cs` — Remove `[AllowAnonymous]` from `GetNotifications()`. The global `[Authorize]` filter will apply.
+  - No other changes.
+- **Acceptance Criteria:**
+  - [ ] Unauthenticated GET to `/Notifications/GetNotifications` returns 302 redirect to login (not 200 with data)
+  - [ ] Authenticated GET to `/Notifications/GetNotifications` returns 200 with JSON
+  - [ ] SignalR notifications still work for authenticated users
+- **Test Strategy:**
+  - New test: anonymous GET to `/Notifications/GetNotifications` returns redirect
+  - Existing test: authenticated GET returns JSON (verify still passes)
+  - Regression: all 65 existing tests pass
+- **Behavioral Deltas:**
+  - Modified: `/Notifications/GetNotifications` now requires authentication
+  - Regression: Authenticated notification flow unchanged
+- **Dependencies:** none
+- **Rollback Plan:** Re-add `[AllowAnonymous]` to `GetNotifications()`
+- **Risk:** Low — Single attribute removal. SignalR push (primary path) unaffected.
+
+---
+
+## Tier 2 — High
+
+---
+
+## sec-003: Add Authorization Check on Grade Management (IDOR Fix)
+
+- **Type:** security
+- **Tier:** 2 (High)
+- **Vulnerability:** Any authenticated user can view and modify grades for ANY course. No role check or instructor ownership verification. (finding S-06)
+- **OWASP:** A01:2021 — Broken Access Control (IDOR)
+- **Scope:**
+  - `Controllers/CoursesController.cs` — Add `[Authorize(Roles = "Admin,Faculty")]` to `Grades()` and `SaveGrades()` actions. Inside both actions, verify the current user is either an Admin or the instructor assigned to the course via `CourseAssignment` table. Return `Forbid()` if not authorized.
+  - No other changes.
+- **Acceptance Criteria:**
+  - [ ] Unauthenticated user is redirected to login on `/Courses/Grades/1050`
+  - [ ] User with ReadOnly role receives 403 Forbidden on `/Courses/Grades/1050`
+  - [ ] Admin user can access and modify grades for any course
+  - [ ] Faculty user assigned to a course can manage grades for that course
+  - [ ] Faculty user NOT assigned to a course receives 403 Forbidden
+- **Test Strategy:**
+  - New test: ReadOnly-role user GET `/Courses/Grades/{id}` returns 403
+  - New test: Admin-role user GET `/Courses/Grades/{id}` returns 200
+  - Existing grade management tests: verify still pass for authorized users
+  - Regression: all 65 existing tests pass
+- **Behavioral Deltas:**
+  - New: Grade management requires Admin or Faculty role
+  - New: Faculty users can only grade courses they are assigned to
+  - Regression: Admin grade management workflow unchanged
+- **Dependencies:** none
+- **Rollback Plan:** Remove `[Authorize(Roles)]` and ownership check
+- **Risk:** Medium — Requires querying CourseAssignment for ownership. Could break existing grade flow if user claims not properly configured.
+
+---
+
+## sec-004: Add CSRF Protection to MarkAsRead Endpoint
+
+- **Type:** security
+- **Tier:** 2 (High)
+- **Vulnerability:** `MarkAsRead()` POST endpoint lacks `[ValidateAntiForgeryToken]` attribute (finding S-04)
+- **OWASP:** A03:2021 — Injection (CSRF)
+- **Scope:**
+  - `Controllers/NotificationsController.cs` — Add `[ValidateAntiForgeryToken]` to `MarkAsRead()` action
+  - `wwwroot/Scripts/notifications.js` — Include anti-forgery token in AJAX POST requests via `X-RequestVerificationToken` header
+  - `Views/Shared/_Layout.cshtml` — Add hidden anti-forgery token field for JavaScript access
+  - No other changes.
+- **Acceptance Criteria:**
+  - [ ] POST to `/Notifications/MarkAsRead` without anti-forgery token returns 400
+  - [ ] POST with valid anti-forgery token succeeds (200)
+  - [ ] JavaScript notifications client includes token in MarkAsRead requests
+- **Test Strategy:**
+  - New test: POST without anti-forgery token returns 400
+  - Existing MarkAsRead integration: verify still works with token
+  - Regression: all 65 existing tests pass
+- **Behavioral Deltas:**
+  - Modified: MarkAsRead requires anti-forgery token
+  - Regression: Notification read status flow unchanged for UI users
+- **Dependencies:** none
+- **Rollback Plan:** Remove `[ValidateAntiForgeryToken]` from MarkAsRead
+- **Risk:** Low — Standard ASP.NET Core anti-forgery pattern.
+
+---
+
+## sec-005: Strengthen Password Policy
+
+- **Type:** security
+- **Tier:** 2 (High)
+- **Vulnerability:** Minimum 6-character password with no special characters required (finding S-03)
+- **OWASP:** A07:2021 — Identification and Authentication Failures
+- **Scope:**
+  - `Program.cs` — Update Identity password options: `RequiredLength=12`, `RequireNonAlphanumeric=true`, `RequireUppercase=true`, `RequireLowercase=true`, `RequiredUniqueChars=4`
+  - `Data/IdentitySeeder.cs` — Update seeded admin password to meet new policy
+  - No other changes.
+- **Acceptance Criteria:**
+  - [ ] Registration with password shorter than 12 characters fails validation
+  - [ ] Registration with password lacking special characters fails validation
+  - [ ] Registration with a strong password (12+ chars, mixed case, special char) succeeds
+  - [ ] Seeded admin user password meets the new policy
+- **Test Strategy:**
+  - Manual: attempt registration with weak password → verify rejection
+  - Regression: all 65 existing tests pass (TestAuthHandler bypasses password)
+- **Behavioral Deltas:**
+  - Modified: Password requirements increased from 6 to 12 chars with complexity rules
+  - Regression: Existing authenticated users unaffected (already logged in)
+- **Dependencies:** none
+- **Rollback Plan:** Revert password options in Program.cs
+- **Risk:** Low — Only affects new registrations and password changes.
+
+---
+
+## sec-006: Fix DOM-Based XSS in Notifications JavaScript
+
+- **Type:** security
+- **Tier:** 2 (High)
+- **Vulnerability:** `innerHTML` used to render notification data from JSON, enabling script injection via malicious entity names (finding S-07)
+- **OWASP:** A03:2021 — Injection (XSS)
+- **Scope:**
+  - `wwwroot/Scripts/notifications.js` — Replace all `innerHTML` assignments with `textContent` for text content and `createElement`/`appendChild` for DOM structure.
+  - No other changes.
+- **Acceptance Criteria:**
+  - [ ] Notification message containing `<script>alert(1)</script>` renders as escaped text, not executed script
+  - [ ] Notification message containing `<img src=x onerror=...>` renders as text, not an image tag
+  - [ ] Normal notification messages display correctly (no visual regression)
+- **Test Strategy:**
+  - Manual: create entity with HTML characters in name → verify notification renders safely
+  - Visual regression: verify notification toast appearance unchanged for normal text
+  - Regression: all 65 existing tests pass
+- **Behavioral Deltas:**
+  - Modified: Notification rendering uses safe DOM APIs
+  - Regression: Notification appearance unchanged for normal text content
+- **Dependencies:** none
+- **Rollback Plan:** Revert notifications.js to innerHTML version
+- **Risk:** Low — Isolated change to one JavaScript file. Output-only change.
+
+---
+
+## Tier 3 — Medium (Hardening)
+
+---
+
+## sec-007: Fix Information Disclosure and Code Patterns
+
+- **Type:** security
+- **Tier:** 3 (Medium)
+- **Vulnerability:** Exception details in user-facing errors (S-09), @Html.Raw pattern (S-08), class-level AllowAnonymous scope (S-11)
+- **OWASP:** A04 (Insecure Design), A03 (Injection pattern), A01 (Access Control)
+- **Scope:**
+  - `Controllers/CoursesController.cs` — Replace `ex.Message` in ModelState errors with generic "An error occurred" message; log full exception via `_logger.LogError()`
+  - 4 view files (`Views/Students/Index.cshtml`, `Views/Courses/Index.cshtml`, `Views/Departments/Index.cshtml`, `Views/Instructors/Index.cshtml`) — Replace `@Html.Raw(" | ")` with `<span class="separator"> | </span>`
+  - `Controllers/HomeController.cs` — Move `[AllowAnonymous]` from class to individual actions (Index, Contact, Error); add `[Authorize]` on About (requires auth to view student data)
+  - No other changes.
+- **Acceptance Criteria:**
+  - [ ] File upload error shows generic message (not exception details)
+  - [ ] Full exception logged to ILogger
+  - [ ] No `@Html.Raw()` calls remain in any view file
+  - [ ] `/Home/About` requires authentication
+  - [ ] `/Home/Index` and `/Home/Contact` remain publicly accessible
+- **Test Strategy:**
+  - Code review: `grep -r "Html.Raw" Views/` returns zero results
+  - Code review: `grep -r "ex.Message" Controllers/` in ModelState context returns zero
+  - New test: anonymous GET `/Home/About` returns redirect
+  - Regression: all 65 existing tests pass (update About test to use auth)
+- **Behavioral Deltas:**
+  - Modified: `/Home/About` now requires authentication
+  - Modified: File upload error messages are generic
+  - Regression: All other page behavior unchanged
+- **Dependencies:** none
+- **Rollback Plan:** Revert individual file changes from git
+- **Risk:** Low — Three isolated changes with no shared state.
+
+---
+
+## sec-008: Add Security Headers and Cookie Configuration
+
+- **Type:** security
+- **Tier:** 3 (Medium)
+- **Vulnerability:** Missing Content-Security-Policy, Permissions-Policy headers (S-10); no explicit cookie security settings (S-12)
+- **OWASP:** A05:2021 — Security Misconfiguration
+- **Scope:**
+  - `Program.cs` — Add CSP header (`default-src 'self'; script-src 'self' cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' ws: wss:`), Permissions-Policy (`camera=(), microphone=(), geolocation=()`), X-Permitted-Cross-Domain-Policies (`none`) to security headers middleware
+  - `Program.cs` — Add `ConfigureApplicationCookie()` with `HttpOnly=true`, `SecurePolicy=Always`, `SameSite=Lax`, `ExpireTimeSpan=30min`, `SlidingExpiration=true`
+  - No other changes.
+- **Acceptance Criteria:**
+  - [ ] HTTP response includes `Content-Security-Policy` header
+  - [ ] HTTP response includes `Permissions-Policy` header
+  - [ ] Auth cookie has HttpOnly, Secure, SameSite attributes
+  - [ ] Session expires after 30 minutes of inactivity
+- **Test Strategy:**
+  - Integration test: verify response headers contain CSP and Permissions-Policy
+  - Manual: inspect cookie attributes in browser dev tools
+  - Regression: all 65 existing tests pass
+- **Behavioral Deltas:**
+  - New: CSP, Permissions-Policy, X-Permitted-Cross-Domain-Policies headers in all responses
+  - Modified: Auth cookie attributes stricter (HttpOnly, Secure, SameSite)
+  - Regression: All page functionality unchanged
+- **Dependencies:** none
+- **Rollback Plan:** Remove added headers and cookie config from Program.cs
+- **Risk:** Low — CSP may block inline scripts if any exist. `style-src 'unsafe-inline'` accommodates Bootstrap inline styles. SignalR requires `connect-src 'self' ws: wss:`.
+
+---
+
+## sec-009: Validate File Upload Content (Magic Bytes)
+
+- **Type:** security
+- **Tier:** 3 (Medium)
+- **Vulnerability:** File upload validates extension only, not MIME type or file content signature (finding S-13)
+- **OWASP:** A04:2021 — Insecure Design
+- **Scope:**
+  - `Controllers/CoursesController.cs` — Add MIME type validation (`ContentType` in allowed list) and magic byte signature check for JPEG (FF D8 FF), PNG (89 50 4E 47), GIF (47 49 46 38), BMP (42 4D). Apply to both Create and Edit POST actions.
+  - No other changes.
+- **Acceptance Criteria:**
+  - [ ] Valid JPEG file with `.jpg` extension → accepted
+  - [ ] Renamed `.exe` file with `.jpg` extension → rejected ("Invalid file content")
+  - [ ] Valid PNG file with `.png` extension → accepted
+  - [ ] File with valid image content but wrong extension → rejected
+- **Test Strategy:**
+  - Unit test: valid image bytes pass signature check
+  - Unit test: invalid bytes (e.g., MZ header for .exe) fail signature check
+  - Regression: all 65 existing tests pass
+- **Behavioral Deltas:**
+  - Modified: File upload now validates MIME type and content signature
+  - Regression: Valid image uploads work identically
+- **Dependencies:** none
+- **Rollback Plan:** Revert CoursesController file validation to extension-only
+- **Risk:** Low — Additive validation. Only rejects files that shouldn't be accepted.
+
+---
+
+## Tier 4 — Low (Defense-in-Depth)
+
+---
+
+## sec-010: Add Rate Limiting, Input Validation, and AJAX Anti-Forgery
+
+- **Type:** security
+- **Tier:** 4 (Low)
+- **Vulnerability:** No rate limiting (S-16), no search input length validation (S-15), no AJAX anti-forgery pattern (S-14)
+- **OWASP:** A05 (Misconfiguration), A03 (Injection prevention)
+- **Scope:**
+  - `Program.cs` — Add `AddRateLimiter()` with fixed-window policy (100 requests/min per IP) and `app.UseRateLimiter()` in pipeline
+  - `Controllers/StudentsController.cs` — Add `searchString` length truncation (max 100 chars)
+  - `Views/Shared/_Layout.cshtml` — Add hidden anti-forgery token element for JavaScript access
+  - `wwwroot/Scripts/notifications.js` — Read anti-forgery token from DOM and include in `X-RequestVerificationToken` header on any POST requests
+  - No other changes.
+- **Acceptance Criteria:**
+  - [ ] More than 100 requests/min from same IP returns 429 Too Many Requests
+  - [ ] Search string longer than 100 characters is truncated
+  - [ ] AJAX POST requests include anti-forgery token header
+- **Test Strategy:**
+  - Manual: rapid-fire requests to verify rate limiter activates
+  - Unit test: search truncation at 100 characters
+  - Regression: all 65 existing tests pass
+- **Behavioral Deltas:**
+  - New: Rate limiting returns 429 on excessive requests
+  - New: Search strings capped at 100 characters
+  - Regression: Normal usage completely unaffected
+- **Dependencies:** none
+- **Rollback Plan:** Remove rate limiter registration; revert search truncation
+- **Risk:** Low — All additive protections. No existing behavior changed for normal users.
+
+---
+
+## Priority Order Summary — Security Increments
+
+| Order | Increment | Tier | Findings | Risk |
+|:-----:|-----------|:----:|----------|:----:|
+| 1 | **sec-001** | 1 | S-01, S-02 (hardcoded secrets) | Low |
+| 2 | **sec-002** | 1 | S-05 (anonymous notification access) | Low |
+| 3 | **sec-003** | 2 | S-06 (grade IDOR) | Medium |
+| 4 | **sec-004** | 2 | S-04 (missing CSRF) | Low |
+| 5 | **sec-005** | 2 | S-03 (weak password policy) | Low |
+| 6 | **sec-006** | 2 | S-07 (DOM XSS) | Low |
+| 7 | **sec-007** | 3 | S-08, S-09, S-11 (code hardening) | Low |
+| 8 | **sec-008** | 3 | S-10, S-12 (config hardening) | Low |
+| 9 | **sec-009** | 3 | S-13 (file content validation) | Low |
+| 10 | **sec-010** | 4 | S-14, S-15, S-16 (defense-in-depth) | Low |
+
+## Security Finding Coverage Matrix
+
+| Finding | Severity | Tier | Increment |
+|---------|----------|:----:|-----------|
+| S-01 | Critical | 1 | sec-001 |
+| S-02 | Critical | 1 | sec-001 |
+| S-03 | High | 2 | sec-005 |
+| S-04 | High | 2 | sec-004 |
+| S-05 | High | 1 | sec-002 |
+| S-06 | High | 2 | sec-003 |
+| S-07 | Medium | 2 | sec-006 |
+| S-08 | Medium | 3 | sec-007 |
+| S-09 | Medium | 3 | sec-007 |
+| S-10 | Medium | 3 | sec-008 |
+| S-11 | Medium | 3 | sec-007 |
+| S-12 | Medium | 3 | sec-008 |
+| S-13 | Medium | 3 | sec-009 |
+| S-14 | Low | 4 | sec-010 |
+| S-15 | Low | 4 | sec-010 |
+| S-16 | Low | 4 | sec-010 |
