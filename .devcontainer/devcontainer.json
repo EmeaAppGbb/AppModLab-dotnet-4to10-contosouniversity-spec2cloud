@@ -8,6 +8,7 @@
             "version": "none",
             "additionalVersions": "10.0"
         },
+        "ghcr.io/devcontainers/features/node:1": {},
         "ghcr.io/devcontainers/features/github-cli:1": {},
         "ghcr.io/devcontainers/features/azure-cli:1": {},
         "ghcr.io/devcontainers/features/powershell:1": {}

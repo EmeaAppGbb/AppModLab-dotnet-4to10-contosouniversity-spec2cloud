@@ -15,6 +15,10 @@ sudo ACCEPT_EULA=Y apt-get install -y -qq mssql-tools18 unixodbc-dev 2>/dev/null
 # Add sqlcmd to PATH
 echo 'export PATH="$PATH:/opt/mssql-tools18/bin"' >> ~/.bashrc
 
+# Install GitHub Copilot CLI extension
+echo "Installing GitHub Copilot CLI extension..."
+gh extension install github/gh-copilot 2>/dev/null || echo "Note: gh-copilot extension may already be installed"
+
 # Trust the dev certificate
 dotnet dev-certs https --trust 2>/dev/null || true
 
